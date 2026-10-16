@@ -249,13 +249,14 @@ public class DocumentManagementService {
 
     /**
      * Resolve the current user ID from SecurityContextHolder.
+     * Throws AuthenticationException if not available — no fabricated audit trail.
      */
     private Long resolveUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Long) {
             return (Long) auth.getPrincipal();
         }
-        log.warn("Could not resolve user ID from SecurityContext — defaulting to 1");
-        return 1L;
+        throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException(
+                "Cannot resolve user ID — SecurityContext empty or principal is not a Long");
     }
 }

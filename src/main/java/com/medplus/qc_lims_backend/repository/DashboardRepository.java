@@ -44,4 +44,55 @@ public interface DashboardRepository extends JpaRepository<TrfMaster, Long> {
             "WHERE te.executionStatus = 'Hold' " +
             "AND te.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE")
     long countQualityOnHold();
+
+    // --- Manufacturer-wise search ---
+
+    /**
+     * Find all TRF IDs for a given manufacturer.
+     */
+    @Query("SELECT t.id FROM TrfMaster t WHERE t.manufacturerId = :manufacturerId AND t.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE")
+    java.util.List<Long> findTrfIdsByManufacturerId(@Param("manufacturerId") Integer manufacturerId);
+
+    // --- Date/batch tracking ---
+
+    /**
+     * Find samples by date range and optionally batch number.
+     * Returns distinct sample_inward_register entries.
+     */
+    @Query("SELECT DISTINCT s FROM com.medplus.qc_lims_backend.domain.SampleInwardRegister s " +
+            "WHERE s.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE " +
+            "AND (:dateFrom IS NULL OR s.receiptDate >= :dateFrom) " +
+            "AND (:dateTo IS NULL OR s.receiptDate <= :dateTo) " +
+            "AND (:batchNo IS NULL OR s.batchNo LIKE CONCAT('%', :batchNo, '%'))")
+    java.util.List<com.medplus.qc_lims_backend.domain.SampleInwardRegister> findByDateRangeAndBatch(
+            @Param("dateFrom") java.time.LocalDate dateFrom,
+            @Param("dateTo") java.time.LocalDate dateTo,
+            @Param("batchNo") String batchNo);
+
+    // --- Parameter analytics ---
+
+    /**
+     * Count test executions grouped by parameter ID for a specific parameter.
+     */
+    @Query("SELECT te.complianceFlag, COUNT(te) FROM TestExecution te " +
+            "WHERE te.parameterId = :parameterId AND te.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE " +
+            "GROUP BY te.complianceFlag")
+    java.util.List<Object[]> countByParameterAndCompliance(@Param("parameterId") Integer parameterId);
+
+    // --- Status-based filtering ---
+
+    /**
+     * Count samples grouped by lifecycle status (ar_status).
+     */
+    @Query("SELECT s.arStatus, COUNT(s) FROM com.medplus.qc_lims_backend.domain.SampleInwardRegister s " +
+            "WHERE s.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE " +
+            "GROUP BY s.arStatus")
+    java.util.List<Object[]> countByArStatusGroups();
+
+    /**
+     * Find all active samples filtered by a specific ar_status.
+     */
+    @Query("SELECT s FROM com.medplus.qc_lims_backend.domain.SampleInwardRegister s " +
+            "WHERE s.arStatus = :status AND s.status = com.medplus.qc_lims_backend.enums.RecordStatus.ACTIVE")
+    java.util.List<com.medplus.qc_lims_backend.domain.SampleInwardRegister> findByArStatus(@Param("status") String status);
 }

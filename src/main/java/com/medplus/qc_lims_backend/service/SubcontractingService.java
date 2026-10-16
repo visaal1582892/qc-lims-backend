@@ -1,13 +1,16 @@
 package com.medplus.qc_lims_backend.service;
 
 import com.medplus.qc_lims_backend.domain.SubcontractRegister;
+import com.medplus.qc_lims_backend.domain.TrfMaster;
 import com.medplus.qc_lims_backend.dto.request.CreateSubcontractRequest;
 import com.medplus.qc_lims_backend.dto.request.UpdateSubcontractRequest;
 import com.medplus.qc_lims_backend.dto.response.SubcontractResponse;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
+import com.medplus.qc_lims_backend.enums.SubcontractStatus;
 import com.medplus.qc_lims_backend.repository.SubcontractRepository;
+import com.medplus.qc_lims_backend.repository.TrfRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -36,6 +39,7 @@ import java.util.stream.Collectors;
 public class SubcontractingService {
 
     private final SubcontractRepository subcontractRepository;
+    private final TrfRepository trfRepository;
 
     // ========================================================================
     // SC-01: Create Subcontract Entry
@@ -48,6 +52,16 @@ public class SubcontractingService {
             throw new BusinessRuleViolationException("Valid QC Head ID is required for subcontract dispatch");
         }
 
+        // Validate TRF exists and is in Accepted status (RC-4 / HIGH-1)
+        if (request.trfId() != null) {
+            TrfMaster trf = trfRepository.findById(request.trfId().longValue())
+                    .orElseThrow(() -> new EntityNotFoundException("TrfMaster", request.trfId()));
+            if (!"Accepted".equals(trf.getTrfStatus())) {
+                throw new BusinessRuleViolationException(
+                        "TRF must be in Accepted status to create a subcontract (current: " + trf.getTrfStatus() + ")");
+            }
+        }
+
         // Build subcontract entity
         SubcontractRegister subcontract = new SubcontractRegister();
         subcontract.setSubcontractNo(generateSubcontractNo());
@@ -58,7 +72,7 @@ public class SubcontractingService {
         subcontract.setDispatchDate(LocalDate.now());
         subcontract.setDispatchedByQcHeadId(request.qcHeadId());
         subcontract.setExpectedReturnDate(request.expectedReturnDate());
-        subcontract.setSubcontractStatus("DISPATCHED");
+        subcontract.setSubcontractStatus(SubcontractStatus.DISPATCHED.getDbValue());
         subcontract.setRoaReceived(false);
         subcontract.setStatus(RecordStatus.ACTIVE);
         subcontract.setCreatedBy(resolveUserId());
@@ -191,13 +205,14 @@ public class SubcontractingService {
 
     /**
      * Resolve the current user ID from SecurityContextHolder.
+     * Throws AuthenticationException if not available — no fabricated audit trail.
      */
     private Long resolveUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Long) {
             return (Long) auth.getPrincipal();
         }
-        log.warn("Could not resolve user ID from SecurityContext — defaulting to 1");
-        return 1L;
+        throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException(
+                "Cannot resolve user ID — SecurityContext empty or principal is not a Long");
     }
 }
