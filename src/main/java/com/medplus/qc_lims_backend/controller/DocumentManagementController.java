@@ -7,6 +7,7 @@ import com.medplus.qc_lims_backend.service.DocumentManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +41,7 @@ public class DocumentManagementController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("executionId") Long executionId) {
         DocumentResponse response = documentManagementService.uploadRoa(executionId, file);
-        return ResponseEntity.ok(ApiResponse.ok(response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
     }
 
     /**
@@ -52,7 +53,7 @@ public class DocumentManagementController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("arNumber") String arNumber) {
         DocumentResponse response = documentManagementService.uploadCoa(arNumber, file);
-        return ResponseEntity.ok(ApiResponse.ok(response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(response));
     }
 
     /**

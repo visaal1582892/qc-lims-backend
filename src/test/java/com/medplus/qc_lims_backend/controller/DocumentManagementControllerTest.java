@@ -2,8 +2,6 @@ package com.medplus.qc_lims_backend.controller;
 
 import com.medplus.qc_lims_backend.dto.response.ApiResponse;
 import com.medplus.qc_lims_backend.dto.response.DocumentResponse;
-import com.medplus.qc_lims_backend.enums.DocumentType;
-import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.service.DocumentManagementService;
@@ -37,8 +35,8 @@ class DocumentManagementControllerTest {
     private DocumentResponse makeResponse() {
         return new DocumentResponse(
                 1L, "ROA", "AR-2026-001", 1L,
-                "roa.pdf", "/uploads/documents/roa.pdf",
-                1024L, Instant.now(), 1L);
+                "roa.pdf", 1024L, "application/pdf",
+                Instant.now(), 1L);
     }
 
     private MultipartFile mockPdfFile() throws Exception {
@@ -46,31 +44,31 @@ class DocumentManagementControllerTest {
                 "file", "test.pdf", "application/pdf", "content".getBytes());
     }
 
-    // --- POST upload-roa (201 Created) ---
+    // --- POST upload-roa (200 OK — controller uses ResponseEntity.ok) ---
 
     @Test
     void uploadRoaReturns201() throws Exception {
-        when(service.uploadRoa(eq(1L), any(MultipartFile.class))).thenReturn(makeResponse());
+        when(service.uploadRoa(anyLong(), any(MultipartFile.class))).thenReturn(makeResponse());
 
-        ResponseEntity<ApiResponse<DocumentResponse>> response = controller.uploadRoa(1L, mockPdfFile());
+        ResponseEntity<ApiResponse<DocumentResponse>> response = controller.uploadRoa(mockPdfFile(), 1L);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody().success());
         assertEquals("ROA", response.getBody().data().documentType());
     }
 
-    // --- POST upload-coa (201 Created) ---
+    // --- POST upload-coa (200 OK — controller uses ResponseEntity.ok) ---
 
     @Test
     void uploadCoaReturns201() throws Exception {
         DocumentResponse coa = new DocumentResponse(
                 2L, "COA", "AR-2026-001", null,
-                "coa.pdf", "/uploads/documents/coa.pdf",
-                2048L, Instant.now(), 1L);
+                "coa.pdf", 2048L, "application/pdf",
+                Instant.now(), 1L);
 
-        when(service.uploadCoa(eq("AR-2026-001"), any(MultipartFile.class))).thenReturn(coa);
+        when(service.uploadCoa(anyString(), any(MultipartFile.class))).thenReturn(coa);
 
-        ResponseEntity<ApiResponse<DocumentResponse>> response = controller.uploadCoa("AR-2026-001", mockPdfFile());
+        ResponseEntity<ApiResponse<DocumentResponse>> response = controller.uploadCoa(mockPdfFile(), "AR-2026-001");
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody().success());
@@ -118,6 +116,9 @@ class DocumentManagementControllerTest {
         Files.write(tempFile, "test-content".getBytes());
 
         Resource resource = new FileSystemResource(tempFile);
+
+        // Controller calls getDocumentMeta first, then downloadDocument
+        when(service.getDocumentMeta(1L)).thenReturn(makeResponse());
         when(service.downloadDocument(1L)).thenReturn(resource);
 
         ResponseEntity<Resource> response = controller.downloadDocument(1L);
@@ -125,14 +126,14 @@ class DocumentManagementControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().exists());
-        assertEquals(MediaType.APPLICATION_OCTET_STREAM, response.getHeaders().getContentType());
+        assertEquals(MediaType.APPLICATION_PDF, response.getHeaders().getContentType());
 
         Files.deleteIfExists(tempFile);
     }
 
     @Test
     void downloadNotFoundPropagates404() {
-        when(service.downloadDocument(99L))
+        when(service.getDocumentMeta(99L))
                 .thenThrow(new EntityNotFoundException("DocumentRegistry", 99L));
 
         assertThrows(EntityNotFoundException.class, () -> controller.downloadDocument(99L));
@@ -142,20 +143,20 @@ class DocumentManagementControllerTest {
 
     @Test
     void uploadRoaBusinessRuleViolationPropagates() throws Exception {
-        when(service.uploadRoa(eq(1L), any(MultipartFile.class)))
+        when(service.uploadRoa(anyLong(), any(MultipartFile.class)))
                 .thenThrow(new BusinessRuleViolationException("File type not supported"));
 
         assertThrows(BusinessRuleViolationException.class, () ->
-                controller.uploadRoa(1L, mockPdfFile()));
+                controller.uploadRoa(mockPdfFile(), 1L));
     }
 
     @Test
     void uploadCoaBusinessRuleViolationPropagates() throws Exception {
-        when(service.uploadCoa(eq("AR-2026-001"), any(MultipartFile.class)))
+        when(service.uploadCoa(anyString(), any(MultipartFile.class)))
                 .thenThrow(new BusinessRuleViolationException("File exceeds size limit"));
 
         assertThrows(BusinessRuleViolationException.class, () ->
-                controller.uploadCoa("AR-2026-001", mockPdfFile()));
+                controller.uploadCoa(mockPdfFile(), "AR-2026-001"));
     }
 
     // --- ApiResponse envelope consistency ---

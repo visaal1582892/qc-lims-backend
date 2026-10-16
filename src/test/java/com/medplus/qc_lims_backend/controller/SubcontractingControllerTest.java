@@ -4,8 +4,6 @@ import com.medplus.qc_lims_backend.dto.request.CreateSubcontractRequest;
 import com.medplus.qc_lims_backend.dto.request.UpdateSubcontractRequest;
 import com.medplus.qc_lims_backend.dto.response.ApiResponse;
 import com.medplus.qc_lims_backend.dto.response.SubcontractResponse;
-import com.medplus.qc_lims_backend.enums.RecordStatus;
-import com.medplus.qc_lims_backend.enums.SubcontractStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.service.SubcontractingService;
@@ -33,8 +31,8 @@ class SubcontractingControllerTest {
     private SubcontractResponse makeResponse() {
         return new SubcontractResponse(
                 1L, "SC-20261016-ABC", 1,
-                "External Lab", "Equipment breakdown", "DISPATCHED",
-                LocalDate.now(), 1L, null, null, "remark", RecordStatus.ACTIVE,
+                "AR-001", "External Lab", "Equipment breakdown",
+                LocalDate.now(), 1L, null, "DISPATCHED", "remark", false,
                 Instant.now(), Instant.now());
     }
 
@@ -112,8 +110,8 @@ class SubcontractingControllerTest {
     void markRoaReceivedReturns200() {
         SubcontractResponse roaResponse = new SubcontractResponse(
                 1L, "SC-20261016-ABC", 1,
-                "External Lab", "Equipment breakdown", "COMPLETED",
-                LocalDate.now(), 1L, null, null, "remark", RecordStatus.ACTIVE,
+                "AR-001", "External Lab", "Equipment breakdown",
+                LocalDate.now(), 1L, null, "COMPLETED", "remark", true,
                 Instant.now(), Instant.now());
 
         when(service.markRoaReceived(1L)).thenReturn(roaResponse);
