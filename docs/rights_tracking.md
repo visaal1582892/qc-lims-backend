@@ -104,6 +104,14 @@ Whenever a new feature is developed, new rights must be added here.
 | ROLE_AR_CLOSE | Can close an AR (mark COMPLETED) | QC_HEAD, QA_MANAGER |
 | ROLE_AR_CANCEL | Can cancel an AR | QC_HEAD, QA_MANAGER |
 
+### Phase 5 — Review Workflow (Module 7)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_QC_HEAD_REVIEW | Can review and approve/rework test results (QC Head) | QC_HEAD |
+| ROLE_QA_HEAD_REVIEW | Can review and approve/rework test results (QA Head) | QA_HEAD |
+| ROLE_REVIEW_HISTORY_VIEW | Can view review audit log / history | QC_ANALYST, QC_HEAD, QA_MANAGER |
+
 ---
 
 *Last updated: 2026-10-16 (Phase 6 — OOS Management rights added)*
@@ -140,3 +148,47 @@ Whenever a new feature is developed, new rights must be added here.
 | --- | --- | --- |
 | ROLE_DOCUMENT_UPLOAD | Can upload ROA/COA documents | QC_ANALYST, QC_HEAD |
 | ROLE_DOCUMENT_VIEW | Can view/download documents | QC_ANALYST, QC_HEAD, QA_MANAGER |
+
+---
+
+*Last updated: 2026-10-16 (Phase 8 — Dashboard & Analytics rights added)*
+
+---
+
+### Phase 8 — QC Dashboard (Module 12.1)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_DASHBOARD_VIEW | Can view QC dashboard with KPI cards | QC_ANALYST, QC_HEAD, QA_MANAGER |
+
+### Phase 8 — Multi-Dimensional Analytics (Module 12.2)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_ANALYTICS_VIEW | Can view multi-dimensional analytics & tracking | QC_ANALYST, QC_HEAD, QA_MANAGER |
+
+---
+
+*Last updated: 2026-10-16 (Phase 9 — External Interface Hooks rights added)*
+
+---
+
+### Phase 9 — External Interface Hooks (Module 14)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_EXTERNAL_TOS_TRIGGER | Can receive TOS/GRN trigger from external systems | EXTERNAL_SYSTEM |
+| ROLE_EXTERNAL_TOS_UPDATE | Can receive TOS status update callbacks | EXTERNAL_SYSTEM |
+
+---
+
+*Last updated: 2026-10-16 (Phase 9 — Trial Test & For Information rights added)*
+
+---
+
+### Phase 6 — Trial Test & For Information (Module 9)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_TRIAL_TEST_CLOSE | Can close a trial test (FOR_INFORMATION) | QC_HEAD |
+| ROLE_AR_GENERATE_FRESH | Can generate AR from fresh analysis | QC_HEAD |
