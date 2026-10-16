@@ -35,7 +35,7 @@ public class ReviewWorkflowController {
     // --- QC Head Review ---
 
     @PostMapping("/qc-head")
-    @PreAuthorize("hasAuthority('\"" + Rights.ROLE_QC_HEAD_REVIEW + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_QC_HEAD_REVIEW + "')")
     public ResponseEntity<ApiResponse<TestExecutionResponse>> qcHeadReview(
             @RequestParam Long executionId,
             @Valid @RequestBody ReviewDecisionRequest request) {
@@ -44,7 +44,7 @@ public class ReviewWorkflowController {
     }
 
     @GetMapping("/qc-head/queue")
-    @PreAuthorize("hasAuthority('\"" + Rights.ROLE_QC_HEAD_REVIEW + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_QC_HEAD_REVIEW + "')")
     public ResponseEntity<ApiResponse<List<ReviewQueueItemResponse>>> getQcReviewQueue() {
         return ResponseEntity.ok(ApiResponse.ok(service.getQcReviewQueue()));
     }
@@ -52,7 +52,7 @@ public class ReviewWorkflowController {
     // --- QA Head Review ---
 
     @PostMapping("/qa-head")
-    @PreAuthorize("hasAuthority('\"" + Rights.ROLE_QA_HEAD_REVIEW + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_QA_HEAD_REVIEW + "')")
     public ResponseEntity<ApiResponse<TestExecutionResponse>> qaHeadReview(
             @RequestParam Long executionId,
             @Valid @RequestBody ReviewDecisionRequest request) {
@@ -61,7 +61,7 @@ public class ReviewWorkflowController {
     }
 
     @GetMapping("/qa-head/queue")
-    @PreAuthorize("hasAuthority('\"" + Rights.ROLE_QA_HEAD_REVIEW + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_QA_HEAD_REVIEW + "')")
     public ResponseEntity<ApiResponse<List<ReviewQueueItemResponse>>> getQaReviewQueue() {
         return ResponseEntity.ok(ApiResponse.ok(service.getQaReviewQueue()));
     }
@@ -69,7 +69,7 @@ public class ReviewWorkflowController {
     // --- Review History ---
 
     @GetMapping("/{executionId}/history")
-    @PreAuthorize("hasAuthority('\"" + Rights.ROLE_REVIEW_HISTORY_VIEW + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_REVIEW_HISTORY_VIEW + "')")
     public ResponseEntity<ApiResponse<List<ReviewAuditLogResponse>>> getReviewHistory(
             @PathVariable Long executionId) {
         return ResponseEntity.ok(ApiResponse.ok(service.getReviewHistory(executionId)));

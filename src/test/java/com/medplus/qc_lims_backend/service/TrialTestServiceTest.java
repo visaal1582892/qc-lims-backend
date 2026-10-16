@@ -14,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.Mockito.lenient;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -60,10 +62,10 @@ class TrialTestServiceTest {
         completedAr.setCreatedAt(Instant.now());
         completedAr.setUpdatedAt(Instant.now());
 
-        when(sampleInwardRepository.findByArNumberAndStatus("MHSL260001", RecordStatus.ACTIVE))
+        lenient().when(sampleInwardRepository.findByArNumberAndStatus("MHSL260001", RecordStatus.ACTIVE))
                 .thenReturn(java.util.Optional.of(completedAr));
-        when(arSequenceGenerator.generateArNumber()).thenReturn("MHSL260002");
-        when(sampleInwardRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        lenient().when(arSequenceGenerator.generateArNumber()).thenReturn("MHSL260002");
+        lenient().when(sampleInwardRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
 
     // ---- TT-01: Mark For Information ----

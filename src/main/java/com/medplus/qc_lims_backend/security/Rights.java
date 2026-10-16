@@ -100,4 +100,13 @@ public final class Rights {
     // Trial Test & For Information (Phase 6) — SRS Module 9
     public static final String ROLE_TRIAL_TEST_CLOSE   = "ROLE_TRIAL_TEST_CLOSE";
     public static final String ROLE_AR_GENERATE_FRESH  = "ROLE_AR_GENERATE_FRESH";
+
+    // Subcontracting Module (Phase 7) — SRS Module 10
+    public static final String ROLE_SUBCONTRACT_CREATE = "ROLE_SUBCONTRACT_CREATE";
+    public static final String ROLE_SUBCONTRACT_VIEW   = "ROLE_SUBCONTRACT_VIEW";
+    public static final String ROLE_SUBCONTRACT_UPDATE = "ROLE_SUBCONTRACT_UPDATE";
+
+    // Document Management (Phase 7) — SRS Module 11
+    public static final String ROLE_DOCUMENT_UPLOAD = "ROLE_DOCUMENT_UPLOAD";
+    public static final String ROLE_DOCUMENT_VIEW   = "ROLE_DOCUMENT_VIEW";
 }
