@@ -42,7 +42,8 @@ class TestExecutionControllerTest {
         return new TestExecutionResponse(
                 1L, "AR-001", 1, 10, 1, 5, 0,
                 "Allocated", null, null, null, null,
-                "Valid", "PENDING", null, null, NOW, null);
+                "Valid", "PENDING", null, null, NOW, null,
+                null, null, null);
     }
 
     private TestExecutionSummaryResponse makeSummary() {

@@ -15,6 +15,7 @@ import com.medplus.qc_lims_backend.dto.response.TestExecutionResponse;
 import com.medplus.qc_lims_backend.dto.response.TestExecutionSummaryResponse;
 import com.medplus.qc_lims_backend.enums.ExecutionStatus;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
+import com.medplus.qc_lims_backend.enums.ReviewStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.QcInventoryRepository;
@@ -317,6 +318,7 @@ public class TestExecutionService {
         }
 
         entity.setExecutionStatus(ExecutionStatus.UNDER_REVIEW.getDbValue());
+        entity.setReviewStatus(ReviewStatus.PENDING_QC.getDbValue());
         entity = testExecutionRepository.save(entity);
 
         // BR-08: Record consumption via QcInventoryService

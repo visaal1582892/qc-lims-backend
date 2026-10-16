@@ -84,4 +84,9 @@ public final class Rights {
     public static final String ROLE_AR_CLOSE      = "ROLE_AR_CLOSE";
     public static final String ROLE_AR_CANCEL     = "ROLE_AR_CANCEL";
     public static final String ROLE_AR_STATUS_VIEW = "ROLE_AR_STATUS_VIEW";
+
+    // Review Workflow (Phase 5) — SRS Module 7
+    public static final String ROLE_QC_HEAD_REVIEW     = "ROLE_QC_HEAD_REVIEW";
+    public static final String ROLE_QA_HEAD_REVIEW     = "ROLE_QA_HEAD_REVIEW";
+    public static final String ROLE_REVIEW_HISTORY_VIEW = "ROLE_REVIEW_HISTORY_VIEW";
 }

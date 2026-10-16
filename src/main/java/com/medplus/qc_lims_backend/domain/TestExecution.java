@@ -78,6 +78,15 @@ public class TestExecution extends BaseEntity {
     @Column(name = "coa_file_path", columnDefinition = "TEXT")
     private String coaFilePath;
 
+    @Column(name = "review_status", length = 32)
+    private String reviewStatus;
+
+    @Column(name = "qc_head_reviewed_at")
+    private Instant qcHeadReviewedAt;
+
+    @Column(name = "qa_head_reviewed_at")
+    private Instant qaHeadReviewedAt;
+
     @Column(name = "created_at")
     private Instant createdAt;
 

@@ -2,7 +2,9 @@ package com.medplus.qc_lims_backend.repository;
 
 import com.medplus.qc_lims_backend.domain.SampleInwardRegister;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,4 +43,13 @@ public interface SampleInwardRepository extends JpaRepository<SampleInwardRegist
     int updateArStatus(@Param("id") Long id, @Param("arStatus") String arStatus);
 
     long countByStatus(RecordStatus status);
+
+    /**
+     * Find by AR number with pessimistic write lock for concurrent AR status updates.
+     * Used by updateTestCompletionAndStatus to prevent race conditions when multiple
+     * test results are submitted concurrently for the same AR.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM SampleInwardRegister s WHERE s.arNumber = :arNumber AND s.status = :status")
+    Optional<SampleInwardRegister> findByArNumberAndStatusForUpdate(@Param("arNumber") String arNumber, @Param("status") RecordStatus status);
 }

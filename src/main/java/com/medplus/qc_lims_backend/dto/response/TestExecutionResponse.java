@@ -27,7 +27,10 @@ public record TestExecutionResponse(
     String roaFilePath,
     String coaFilePath,
     Instant createdAt,
-    Instant submittedAt
+    Instant submittedAt,
+    String reviewStatus,
+    Instant qcHeadReviewedAt,
+    Instant qaHeadReviewedAt
 ) {
     public static TestExecutionResponse fromEntity(TestExecution entity) {
         return new TestExecutionResponse(
@@ -48,7 +51,10 @@ public record TestExecutionResponse(
             entity.getRoaFilePath(),
             entity.getCoaFilePath(),
             entity.getCreatedAt(),
-            entity.getSubmittedAt()
+            entity.getSubmittedAt(),
+            entity.getReviewStatus(),
+            entity.getQcHeadReviewedAt(),
+            entity.getQaHeadReviewedAt()
         );
     }
 }

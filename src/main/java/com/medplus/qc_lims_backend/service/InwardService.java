@@ -218,6 +218,9 @@ public class InwardService {
      * Recalculate and persist the test completion rate for an AR.
      * Called by TestExecutionService after each test status change.
      *
+     * Uses pessimistic locking (SELECT ... FOR UPDATE) to prevent race conditions
+     * when multiple test results are submitted concurrently for the same AR.
+     *
      * Sets ar_status to:
      *   IN_PROGRESS — if at least one test is non-terminal
      *   ALL_TESTS_COMPLETE — if all tests are terminal
@@ -225,7 +228,7 @@ public class InwardService {
      */
     @Transactional
     public void updateTestCompletionAndStatus(String arNumber, long totalTests, long terminalTests) {
-        repository.findByArNumberAndStatus(arNumber, RecordStatus.ACTIVE).ifPresent(entity -> {
+        repository.findByArNumberAndStatusForUpdate(arNumber, RecordStatus.ACTIVE).ifPresent(entity -> {
             BigDecimal rate = BigDecimal.ZERO;
             if (totalTests > 0) {
                 rate = terminalTests > totalTests

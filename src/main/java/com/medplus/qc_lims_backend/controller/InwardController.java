@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +30,25 @@ import java.util.List;
 public class InwardController {
 
     private final InwardService inwardService;
+
+    /**
+     * Resolve authenticated user ID from SecurityContextHolder.
+     * Follows the same pattern as QcInventoryService.resolveUserId().
+     */
+    private Long resolveUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
+            // UserDetails in this project does not carry a numeric ID directly.
+            // If a UserPrincipal with .getId() is used, cast and extract.
+            Object principal = auth.getPrincipal();
+            try {
+                return (Long) principal.getClass().getMethod("getId").invoke(principal);
+            } catch (Exception ignored) {
+                // Fall through to null
+            }
+        }
+        return null;
+    }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_VIEW + "')")
     @GetMapping
@@ -55,7 +77,8 @@ public class InwardController {
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_CREATE + "')")
     @PostMapping
     public ResponseEntity<ApiResponse<InwardResponse>> create(@Valid @RequestBody CreateInwardRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(inwardService.create(request, null)));
+        Long userId = resolveUserId();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(inwardService.create(request, userId)));
     }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_UPDATE + "')")
@@ -63,7 +86,8 @@ public class InwardController {
     public ResponseEntity<ApiResponse<InwardResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdateInwardRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(inwardService.update(id, request, null)));
+        Long userId = resolveUserId();
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.update(id, request, userId)));
     }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_DELETE + "')")
@@ -80,7 +104,8 @@ public class InwardController {
     public ResponseEntity<ApiResponse<InwardResponse>> closeAr(
             @PathVariable Long id,
             @Valid @RequestBody ArLifecycleRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(inwardService.closeAr(id, request, null)));
+        Long userId = resolveUserId();
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.closeAr(id, request, userId)));
     }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_AR_CANCEL + "')")
@@ -88,6 +113,7 @@ public class InwardController {
     public ResponseEntity<ApiResponse<InwardResponse>> cancelAr(
             @PathVariable Long id,
             @Valid @RequestBody ArLifecycleRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(inwardService.cancelAr(id, request, null)));
+        Long userId = resolveUserId();
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.cancelAr(id, request, userId)));
     }
 }

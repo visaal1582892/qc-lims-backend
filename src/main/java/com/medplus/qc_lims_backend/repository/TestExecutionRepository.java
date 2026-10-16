@@ -78,4 +78,16 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, Lo
      * Count all active test executions for a given AR.
      */
     long countByArNumberAndStatus(String arNumber, RecordStatus status);
+
+    /**
+     * Find executions awaiting QC Head review: Under_Review with review_status = PENDING_QC.
+     */
+    List<TestExecution> findByExecutionStatusAndReviewStatusAndStatus(
+            String executionStatus, String reviewStatus, RecordStatus status);
+
+    /**
+     * Find executions awaiting QA Head review: Released with review_status = PENDING_QA.
+     */
+    List<TestExecution> findByExecutionStatusInAndReviewStatusAndStatus(
+            java.util.List<String> executionStatuses, String reviewStatus, RecordStatus status);
 }
