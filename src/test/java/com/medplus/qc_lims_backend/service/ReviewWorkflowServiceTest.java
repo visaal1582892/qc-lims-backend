@@ -322,7 +322,7 @@ class ReviewWorkflowServiceTest {
                 .thenReturn(Optional.of(execution));
 
         ReviewAuditLog log1 = new ReviewAuditLog();
-        log1.setLogId(1L);
+        log1.setId(1L);
         log1.setExecutionId(1L);
         log1.setReviewStage("QC_HEAD");
         log1.setReviewerId(100L);
@@ -330,7 +330,7 @@ class ReviewWorkflowServiceTest {
         log1.setExecutedAt(Instant.parse("2026-01-01T10:00:00Z"));
 
         ReviewAuditLog log2 = new ReviewAuditLog();
-        log2.setLogId(2L);
+        log2.setId(2L);
         log2.setExecutionId(1L);
         log2.setReviewStage("QA_HEAD");
         log2.setReviewerId(200L);
