@@ -8,6 +8,7 @@ import com.medplus.qc_lims_backend.security.Rights;
 import com.medplus.qc_lims_backend.service.InwardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +48,7 @@ public class InwardController {
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_CREATE + "')")
     @PostMapping
     public ResponseEntity<ApiResponse<InwardResponse>> create(@Valid @RequestBody CreateInwardRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(inwardService.create(request, null)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(inwardService.create(request, null)));
     }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_UPDATE + "')")

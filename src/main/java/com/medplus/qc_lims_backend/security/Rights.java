@@ -48,4 +48,8 @@ public final class Rights {
 
     // Multi-Dimensional Analytics (Phase 8) — SRS Module 12.2
     public static final String ROLE_ANALYTICS_VIEW  = "ROLE_ANALYTICS_VIEW";
+
+    // External Interface Hooks (Phase 9) — SRS Module 14
+    public static final String ROLE_EXTERNAL_TOS_TRIGGER = "ROLE_EXTERNAL_TOS_TRIGGER";
+    public static final String ROLE_EXTERNAL_TOS_UPDATE  = "ROLE_EXTERNAL_TOS_UPDATE";
 }
