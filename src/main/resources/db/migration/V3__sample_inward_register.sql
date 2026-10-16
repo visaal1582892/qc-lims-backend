@@ -3,7 +3,7 @@
 -- Includes BaseEntity.status column (RC-3) for soft-delete support
 
 CREATE TABLE sample_inward_register (
-    inward_id SERIAL PRIMARY KEY,
+    inward_id INT AUTO_INCREMENT PRIMARY KEY,
     ar_number VARCHAR(50) UNIQUE,  -- NULL if subcontracted
     trf_id INT,                    -- Nullable FK to trf_master (no FK constraint yet)
     product_id INT NOT NULL,
@@ -14,12 +14,12 @@ CREATE TABLE sample_inward_register (
     ar_status VARCHAR(50) DEFAULT 'Active' CHECK (
         ar_status IN ('Active', 'For_Information', 'Closed', 'Rejected')
     ),
-    is_subcontracted BOOLEAN DEFAULT FALSE,
+    is_subcontracted TINYINT(1) DEFAULT FALSE,
     subcontract_remarks TEXT,
     receipt_date DATE DEFAULT CURRENT_DATE,
     -- BaseEntity columns (RC-3):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'

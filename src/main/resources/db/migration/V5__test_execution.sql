@@ -2,7 +2,7 @@
 -- SRS Module 13, line 373: Test Allocation & Execution State Machine
 
 CREATE TABLE test_execution (
-    execution_id SERIAL PRIMARY KEY,
+    execution_id INT AUTO_INCREMENT PRIMARY KEY,
     ar_number VARCHAR(50) REFERENCES sample_inward_register(ar_number),
     parameter_id INT NOT NULL REFERENCES test_parameter_master(parameter_id),
     allocated_to_analyst_id INT NOT NULL,
@@ -23,11 +23,11 @@ CREATE TABLE test_execution (
     roa_file_path TEXT,
     coa_file_path TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    submitted_at TIMESTAMP,
+    submitted_at TIMESTAMP NULL,
 
     -- BaseEntity columns:
     created_by BIGINT,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
 );

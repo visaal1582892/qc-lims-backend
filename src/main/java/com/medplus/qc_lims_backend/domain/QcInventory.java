@@ -17,7 +17,7 @@ import java.time.LocalDate;
  * Extends BaseEntity for id, createdAt, updatedAt, createdBy, updatedBy, status.
  * Overrides: BaseEntity.id -> inventory_id, BaseEntity.createdBy -> received_by_user_id.
  *
- * current_balance is a PostgreSQL GENERATED STORED column — mapped read-only.
+ * current_balance is a MySQL GENERATED STORED column — mapped read-only.
  * manufacturer_id included per SRS Module 5.1 (review correction C-4).
  */
 @Entity
@@ -59,7 +59,7 @@ public class QcInventory extends BaseEntity {
     @Column(name = "quantity_consumed")
     private Integer quantityConsumed = 0;
 
-    /** PostgreSQL GENERATED STORED column — JPA must not INSERT/UPDATE this */
+    /** MySQL GENERATED STORED column — mapped read-only */
     @Column(name = "current_balance", insertable = false, updatable = false)
     private Integer currentBalance;
 

@@ -14,8 +14,8 @@ import java.util.Objects;
 /**
  * Dedicated service for atomic AR number generation.
  *
- * Uses INSERT ... ON CONFLICT (calendar_year) DO UPDATE SET last_sequence = last_sequence + 1
- * RETURNING last_sequence — a single atomic statement with no race condition (RC-4).
+ * Uses INSERT ... ON DUPLICATE KEY UPDATE SET last_sequence = last_sequence + 1
+ * followed by SELECT — a single atomic statement with no race condition (RC-4).
  *
  * Calendar year stored as 2-digit string ('26') consistent with V1 seed.
  */
@@ -30,18 +30,22 @@ public class ArSequenceGenerator {
         String calendarYear = String.valueOf(LocalDate.now().getYear()).substring(2); // '26'
 
         try {
-            // Atomic: INSERT ... ON CONFLICT DO UPDATE ... RETURNING
-            // This is a SINGLE statement — no race condition (RC-4)
-            // PostgreSQL guarantees row-level lock during ON CONFLICT resolution
-            Query query = entityManager.createNativeQuery(
+            // Atomic: INSERT ... ON DUPLICATE KEY UPDATE (MySQL)
+            // Then SELECT to get the updated sequence value
+            Query insertQuery = entityManager.createNativeQuery(
                 "INSERT INTO ar_sequence_tracker (calendar_year, last_sequence) " +
                 "VALUES (:year, 1) " +
-                "ON CONFLICT (calendar_year) DO UPDATE SET last_sequence = last_sequence + 1 " +
-                "RETURNING last_sequence"
+                "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1"
             );
-            query.setParameter("year", calendarYear);
+            insertQuery.setParameter("year", calendarYear);
+            insertQuery.executeUpdate();
 
-            Number result = (Number) Objects.requireNonNull(query.getSingleResult());
+            // Read back the updated sequence
+            Query selectQuery = entityManager.createNativeQuery(
+                "SELECT last_sequence FROM ar_sequence_tracker WHERE calendar_year = :year"
+            );
+            selectQuery.setParameter("year", calendarYear);
+            Number result = (Number) Objects.requireNonNull(selectQuery.getSingleResult());
             int sequence = result.intValue();
 
             // Validate overflow at 9999
@@ -74,15 +78,21 @@ public class ArSequenceGenerator {
         String calendarYear = String.valueOf(LocalDate.now().getYear()).substring(2); // '26'
 
         try {
-            Query query = entityManager.createNativeQuery(
+            // MySQL: ON DUPLICATE KEY UPDATE
+            Query insertQuery = entityManager.createNativeQuery(
                 "INSERT INTO oos_sequence_tracker (calendar_year, last_sequence) " +
                 "VALUES (:year, 1) " +
-                "ON CONFLICT (calendar_year) DO UPDATE SET last_sequence = last_sequence + 1 " +
-                "RETURNING last_sequence"
+                "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1"
             );
-            query.setParameter("year", calendarYear);
+            insertQuery.setParameter("year", calendarYear);
+            insertQuery.executeUpdate();
 
-            Number result = (Number) Objects.requireNonNull(query.getSingleResult());
+            Query selectQuery = entityManager.createNativeQuery(
+                "SELECT last_sequence FROM oos_sequence_tracker WHERE calendar_year = :year"
+            );
+            selectQuery.setParameter("year", calendarYear);
+
+            Number result = (Number) Objects.requireNonNull(selectQuery.getSingleResult());
             int sequence = result.intValue();
 
             if (sequence > 9999) {

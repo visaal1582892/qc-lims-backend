@@ -2,7 +2,7 @@
 -- SRS Module 13, line 399: Out of Specification Incident tracking
 
 CREATE TABLE oos_incident_register (
-    incident_id SERIAL PRIMARY KEY,
+    incident_id INT AUTO_INCREMENT PRIMARY KEY,
     incident_number VARCHAR(100) NOT NULL UNIQUE,
     ar_number VARCHAR(50) NOT NULL REFERENCES sample_inward_register(ar_number),
     execution_id INT NOT NULL REFERENCES test_execution(execution_id),
@@ -14,7 +14,7 @@ CREATE TABLE oos_incident_register (
 
     -- BaseEntity columns:
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'

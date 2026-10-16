@@ -10,21 +10,55 @@
 --   Under_Review -> QC Head Review -> Released (to QA) or Rework_Requested
 --   Released     -> QA Head Review -> QA_Approved (COA locked) or Rework_Requested
 --
+-- MySQL: Use INFORMATION_SCHEMA checks for column existence before ADD COLUMN.
 -- ============================================================================
 
--- 1. Add review tracking columns to test_execution
-ALTER TABLE test_execution
-    ADD COLUMN IF NOT EXISTS review_status VARCHAR(32) DEFAULT NULL;
+-- 1. Add review tracking columns to test_execution (MySQL: check existence)
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'test_execution'
+    AND COLUMN_NAME = 'review_status'
+);
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE test_execution ADD COLUMN review_status VARCHAR(32) DEFAULT NULL',
+    'SELECT 1'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
-ALTER TABLE test_execution
-    ADD COLUMN IF NOT EXISTS qc_head_reviewed_at TIMESTAMP DEFAULT NULL;
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'test_execution'
+    AND COLUMN_NAME = 'qc_head_reviewed_at'
+);
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE test_execution ADD COLUMN qc_head_reviewed_at TIMESTAMP DEFAULT NULL',
+    'SELECT 1'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
-ALTER TABLE test_execution
-    ADD COLUMN IF NOT EXISTS qa_head_reviewed_at TIMESTAMP DEFAULT NULL;
+SET @col_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'test_execution'
+    AND COLUMN_NAME = 'qa_head_reviewed_at'
+);
+SET @sql = IF(@col_exists = 0,
+    'ALTER TABLE test_execution ADD COLUMN qa_head_reviewed_at TIMESTAMP DEFAULT NULL',
+    'SELECT 1'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- 2. Create review_audit_log table (immutable audit trail)
 CREATE TABLE IF NOT EXISTS review_audit_log (
-    log_id SERIAL PRIMARY KEY,
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
     execution_id BIGINT NOT NULL REFERENCES test_execution(execution_id),
     review_stage VARCHAR(20) NOT NULL CHECK (review_stage IN ('QC_HEAD', 'QA_HEAD')),
     reviewer_id BIGINT NOT NULL,
@@ -34,7 +68,7 @@ CREATE TABLE IF NOT EXISTS review_audit_log (
     -- BaseEntity columns
     created_by BIGINT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
 );

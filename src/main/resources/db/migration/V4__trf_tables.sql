@@ -4,7 +4,7 @@
 
 -- e-TRF Master (SRS Module 3, 13)
 CREATE TABLE trf_master (
-    trf_id SERIAL PRIMARY KEY,
+    trf_id INT AUTO_INCREMENT PRIMARY KEY,
     grn_number VARCHAR(100),
     manufacturer_id INT NOT NULL,
     product_id INT NOT NULL,
@@ -24,11 +24,11 @@ CREATE TABLE trf_master (
     other_storage_desc VARCHAR(150),
 
     -- Sample Type Flags (SRS 3.1 B)
-    is_hygroscopic BOOLEAN DEFAULT FALSE,
-    is_light_sensitive BOOLEAN DEFAULT FALSE,
-    is_non_hazardous BOOLEAN DEFAULT FALSE,
-    is_hazardous BOOLEAN DEFAULT FALSE,
-    is_msds_attached BOOLEAN DEFAULT FALSE,
+    is_hygroscopic TINYINT(1) DEFAULT FALSE,
+    is_light_sensitive TINYINT(1) DEFAULT FALSE,
+    is_non_hazardous TINYINT(1) DEFAULT FALSE,
+    is_hazardous TINYINT(1) DEFAULT FALSE,
+    is_msds_attached TINYINT(1) DEFAULT FALSE,
     other_sample_type_desc VARCHAR(150),
 
     -- Submission & Analysis (SRS 3.1 C)
@@ -59,7 +59,7 @@ CREATE TABLE trf_master (
 
     -- BaseEntity columns (RC-3):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
@@ -72,13 +72,13 @@ CREATE INDEX idx_trf_grn ON trf_master(grn_number);
 
 -- Junction table: e-TRF to Test Parameters (surrogate id per OQ-05)
 CREATE TABLE trf_test_parameters (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     trf_id INT NOT NULL REFERENCES trf_master(trf_id) ON DELETE CASCADE,
     parameter_id INT NOT NULL REFERENCES test_parameter_master(parameter_id),
-    is_active_for_testing BOOLEAN DEFAULT TRUE,
+    is_active_for_testing TINYINT(1) DEFAULT TRUE,
     -- BaseEntity columns (RC-3):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
@@ -88,7 +88,7 @@ CREATE UNIQUE INDEX uidx_trf_test_param_status ON trf_test_parameters(trf_id, pa
 
 -- Receipt Checklist (SRS 3.1 D)
 CREATE TABLE trf_receipt_checklist (
-    checklist_id SERIAL PRIMARY KEY,
+    checklist_id INT AUTO_INCREMENT PRIMARY KEY,
     trf_id INT NOT NULL REFERENCES trf_master(trf_id) ON DELETE CASCADE,
     ar_number VARCHAR(50) REFERENCES sample_inward_register(ar_number),
 
@@ -102,7 +102,7 @@ CREATE TABLE trf_receipt_checklist (
 
     -- BaseEntity columns (RC-3):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'

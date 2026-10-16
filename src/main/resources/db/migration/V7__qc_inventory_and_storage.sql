@@ -11,7 +11,7 @@
 --   MEDIUM: Added UNIQUE constraint on ar_number
 
 CREATE TABLE IF NOT EXISTS qc_inventory (
-    inventory_id SERIAL PRIMARY KEY,
+    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
     ar_number VARCHAR(50),
     manufacturer_id INT NOT NULL,  -- C-4: SRS Module 5.1 requirement
     product_id INT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS qc_inventory (
     received_by_user_id INT NOT NULL,
     -- BaseEntity audit columns (explicit per MEDIUM correction):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
 

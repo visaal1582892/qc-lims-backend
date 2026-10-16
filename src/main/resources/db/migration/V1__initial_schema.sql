@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS ar_sequence_tracker (
 );
 
 -- Seed initial entry for current year (2026)
+-- MySQL: ON DUPLICATE KEY UPDATE instead of ON CONFLICT
 INSERT INTO ar_sequence_tracker (calendar_year, last_sequence)
 VALUES ('26', 0)
-ON CONFLICT (calendar_year) DO NOTHING;
+ON DUPLICATE KEY UPDATE calendar_year = VALUES(calendar_year);

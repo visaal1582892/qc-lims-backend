@@ -2,7 +2,7 @@
 -- SRS Module 13 DDL with BaseEntity.status column (RC-1) and UNIQUE INDEX for duplicate prevention
 
 CREATE TABLE test_parameter_master (
-    parameter_id SERIAL PRIMARY KEY,
+    parameter_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
     parameter_name VARCHAR(150) NOT NULL,
     standard_reference VARCHAR(50) CHECK (
@@ -13,9 +13,9 @@ CREATE TABLE test_parameter_master (
     min_limit DECIMAL(12,4),
     max_limit DECIMAL(12,4),
     text_specification TEXT,
-    is_critical BOOLEAN DEFAULT TRUE,
+    is_critical TINYINT(1) DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by BIGINT,
     updated_by BIGINT,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
