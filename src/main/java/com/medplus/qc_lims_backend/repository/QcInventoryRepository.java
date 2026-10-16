@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Spring Data JPA repository for QcInventory.
@@ -44,7 +46,8 @@ public interface QcInventoryRepository extends JpaRepository<QcInventory, Long> 
 
     /** PESSIMISTIC_WRITE lock for concurrent allocation */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<QcInventory> findByIdAndStatusWithLock(Long id, RecordStatus status);
+    @Query("SELECT i FROM QcInventory i WHERE i.id = :id AND i.status = :status")
+    Optional<QcInventory> findByIdAndStatusWithLock(@Param("id") Long id, @Param("status") RecordStatus status);
 
     long countByStatus(RecordStatus status);
 

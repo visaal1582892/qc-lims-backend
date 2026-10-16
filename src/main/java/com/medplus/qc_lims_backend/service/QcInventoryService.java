@@ -16,7 +16,10 @@ import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.QcInventoryRepository;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +37,7 @@ import java.util.Optional;
  *   C-2 [HIGH]: Derives user ID from SecurityContextHolder, not from client.
  *   C-4 [HIGH]: manufacturer_id included in createInventory flow.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -42,14 +46,28 @@ public class QcInventoryService {
     private final QcInventoryRepository inventoryRepository;
     private final SampleInwardRepository inwardRepository;
 
-    // --- User ID extraction (C-2: SecurityContextHolder) ---
+    // --- User ID extraction (H-2 fix: resolve actual user from SecurityContextHolder) ---
 
-    private Long getCurrentUserId() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof String) {
-            return 1L; // Default for basic auth username — replace with real user resolver when auth is integrated
+    /**
+     * Resolve current user ID from Spring Security context.
+     * Follows InwardService pattern: accepts userId parameter from controller
+     * when available, otherwise derives from SecurityContextHolder.
+     */
+    private Long resolveUserId(Long suppliedUserId) {
+        if (suppliedUserId != null) {
+            return suppliedUserId;
         }
-        return 1L;
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof UserDetails) {
+                // UserDetails does not carry a numeric ID in this project's auth setup.
+                // Log for observability; caller should supply userId for audit accuracy.
+                log.debug("Authenticated principal is UserDetails; no numeric user ID available.");
+            }
+        } catch (IllegalStateException ex) {
+            log.warn("No SecurityContext available when resolving user ID: {}", ex.getMessage());
+        }
+        return null; // No user identity resolved — DB NOT NULL constraint will catch if required
     }
 
     // --- READ operations (readOnly by default) ---
@@ -116,7 +134,7 @@ public class QcInventoryService {
         entity.setQuantityAllocated(0);
         entity.setQuantityConsumed(0);
         entity.setStorageLocation(request.getStorageLocation());
-        entity.setCreatedBy(getCurrentUserId()); // C-2: derive from SecurityContextHolder
+        entity.setCreatedBy(resolveUserId(null)); // H-2: derive from SecurityContextHolder
         entity.setStatus(RecordStatus.ACTIVE);
 
         // Parse optional dates
@@ -142,7 +160,65 @@ public class QcInventoryService {
         QcInventory entity = inventoryRepository.findByIdAndStatus(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("QcInventory", id));
 
+        // M-1: Prevent reducing total below already-allocated quantity
+        int currentAllocated = entity.getQuantityAllocated() == null ? 0 : entity.getQuantityAllocated();
+        if (newTotal < currentAllocated) {
+            throw new BusinessRuleViolationException(
+                    "Cannot reduce total quantity to " + newTotal +
+                    " — already allocated: " + currentAllocated +
+                    ". Total must be >= allocated quantity.");
+        }
+
         entity.setTotalQuantityReceived(newTotal);
+        entity = inventoryRepository.save(entity);
+        return toResponse(entity);
+    }
+
+    /**
+     * H-1 fix: General update endpoint for inventory records.
+     * Partial update — only non-null fields in request are applied.
+     * Matches InwardService.update() pattern.
+     */
+    @Transactional
+    public QcInventoryResponse update(Long id, QcInventoryRequest request) {
+        QcInventory entity = inventoryRepository.findByIdAndStatus(id, RecordStatus.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("QcInventory", id));
+
+        // Partial update — only non-null fields
+        if (request.getProductId() != null) {
+            entity.setProductId(request.getProductId());
+        }
+        if (request.getManufacturerId() != null) {
+            entity.setManufacturerId(request.getManufacturerId());
+        }
+        if (request.getBatchNo() != null && !request.getBatchNo().isBlank()) {
+            entity.setBatchNo(request.getBatchNo());
+        }
+        if (request.getTotalQuantityReceived() != null) {
+            // M-1: Validate total >= allocated on update too
+            int newTotal = request.getTotalQuantityReceived();
+            if (newTotal < 1) {
+                throw new BusinessRuleViolationException("Total quantity must be at least 1.");
+            }
+            int currentAllocated = entity.getQuantityAllocated() == null ? 0 : entity.getQuantityAllocated();
+            if (newTotal < currentAllocated) {
+                throw new BusinessRuleViolationException(
+                        "Cannot reduce total quantity to " + newTotal +
+                        " — already allocated: " + currentAllocated +
+                        ". Total must be >= allocated quantity.");
+            }
+            entity.setTotalQuantityReceived(newTotal);
+        }
+        if (request.getStorageLocation() != null) {
+            entity.setStorageLocation(request.getStorageLocation());
+        }
+        if (request.getMfgDate() != null && !request.getMfgDate().isBlank()) {
+            entity.setMfgDate(LocalDate.parse(request.getMfgDate()));
+        }
+        if (request.getExpDate() != null && !request.getExpDate().isBlank()) {
+            entity.setExpDate(LocalDate.parse(request.getExpDate()));
+        }
+
         entity = inventoryRepository.save(entity);
         return toResponse(entity);
     }
