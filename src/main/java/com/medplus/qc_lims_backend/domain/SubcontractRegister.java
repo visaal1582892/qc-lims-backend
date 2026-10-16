@@ -29,8 +29,8 @@ public class SubcontractRegister extends BaseEntity {
     private String subcontractNo;
 
     /** TRF reference — may link back to the original TRF record */
-    @Column(name = "trf_id")
-    private Integer trfId;
+    @Column(name = "trf_number", length = 100)
+    private String trfNumber;
 
     /** AR number — NULL for subcontracted samples per business rule */
     @Column(name = "ar_number", length = 50)

@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public record SubcontractResponse(
         Long id,
         String subcontractNo,
-        Integer trfId,
+        String trfNumber,
         String arNumber,
         String externalLabName,
         String reason,
@@ -30,7 +30,7 @@ public record SubcontractResponse(
         return new SubcontractResponse(
                 entity.getId(),
                 entity.getSubcontractNo(),
-                entity.getTrfId(),
+                entity.getTrfNumber(),
                 entity.getArNumber(),
                 entity.getExternalLabName(),
                 entity.getReason(),

@@ -10,8 +10,8 @@ import java.time.LocalDate;
  * NO AR Number generated — ar_number remains NULL.
  */
 public record CreateSubcontractRequest(
-        /** TRF ID reference (optional) */
-        Integer trfId,
+        /** TRF number reference (optional) */
+        String trfNumber,
 
         /** External lab name (required) */
         @NotBlank(message = "External lab name is required")

@@ -17,8 +17,8 @@ public interface SubcontractRepository extends JpaRepository<SubcontractRegister
     /** Find all active subcontracts ordered by dispatch date descending. */
     List<SubcontractRegister> findByStatusOrderByDispatchDateDesc(RecordStatus status);
 
-    /** Find subcontracts by TRF ID and active status. */
-    List<SubcontractRegister> findByTrfIdAndStatus(Integer trfId, RecordStatus status);
+    /** Find subcontracts by TRF number and active status. */
+    List<SubcontractRegister> findByTrfNumberAndStatus(String trfNumber, RecordStatus status);
 
     /** Find subcontract by subcontract number and active status. */
     SubcontractRegister findBySubcontractNoAndStatus(String subcontractNo, RecordStatus status);

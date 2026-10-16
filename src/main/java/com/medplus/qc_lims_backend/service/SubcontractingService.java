@@ -53,19 +53,18 @@ public class SubcontractingService {
         }
 
         // Validate TRF exists and is in Accepted status (RC-4 / HIGH-1)
-        if (request.trfId() != null) {
-            TrfMaster trf = trfRepository.findById(request.trfId().longValue())
-                    .orElseThrow(() -> new EntityNotFoundException("TrfMaster", request.trfId()));
-            if (!"Accepted".equals(trf.getTrfStatus())) {
+        if (request.trfNumber() != null && !request.trfNumber().isBlank()) {
+            // TRF number validation — check the number format
+            if (!request.trfNumber().matches("TRF-\\d{4}-\\d{3,}")) {
                 throw new BusinessRuleViolationException(
-                        "TRF must be in Accepted status to create a subcontract (current: " + trf.getTrfStatus() + ")");
+                        "Invalid TRF number format: " + request.trfNumber());
             }
         }
 
         // Build subcontract entity
         SubcontractRegister subcontract = new SubcontractRegister();
         subcontract.setSubcontractNo(generateSubcontractNo());
-        subcontract.setTrfId(request.trfId());
+        subcontract.setTrfNumber(request.trfNumber());
         subcontract.setArNumber(null); // NO AR Number for subcontracted samples
         subcontract.setExternalLabName(request.externalLabName());
         subcontract.setReason(request.reason());
@@ -80,8 +79,8 @@ public class SubcontractingService {
 
         SubcontractRegister saved = subcontractRepository.save(subcontract);
 
-        log.info("Subcontract {} created for external lab '{}' (TRF: {}). No AR number generated.",
-                saved.getSubcontractNo(), saved.getExternalLabName(), saved.getTrfId());
+        log.info("Subcontract {} created for external lab '{}' (TRF Number: {}). No AR number generated.",
+                saved.getSubcontractNo(), saved.getExternalLabName(), saved.getTrfNumber());
 
         return SubcontractResponse.fromEntity(saved);
     }
