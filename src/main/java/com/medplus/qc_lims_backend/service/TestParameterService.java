@@ -43,6 +43,18 @@ public class TestParameterService {
                 .toList();
     }
 
+    public List<TestParameterResponse> listByProductIdAndStandard(Integer productId, String standardReference) {
+        return listByProductId(productId).stream()
+                .filter(r -> standardReference.equals(r.standardReference()))
+                .toList();
+    }
+
+    public List<TestParameterResponse> listByStandard(String standardReference) {
+        return listAll().stream()
+                .filter(r -> standardReference.equals(r.standardReference()))
+                .toList();
+    }
+
     public TestParameterResponse getById(Long id) {
         TestParameterMaster entity = repository.findByIdAndStatus(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("TestParameter", id));
@@ -58,11 +70,21 @@ public class TestParameterService {
                 .toList();
     }
 
+    public List<TestParameterResponse> searchByProductIdAndName(Integer productId, String parameterName) {
+        if (parameterName == null || parameterName.isBlank()) {
+            return listByProductId(productId);
+        }
+        return repository.findByProductIdAndParameterNameContainingIgnoreCaseAndStatus(
+                productId, parameterName, RecordStatus.ACTIVE).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // --- CREATE (mutating) ---
 
     @Transactional
     public TestParameterResponse create(TestParameterRequest request, Long createdBy) {
-        validateBusinessRules(request, null);
+        validateBusinessRules(request);
 
         // Check duplicate (product_id, parameter_name)
         if (repository.existsByProductIdAndParameterNameAndStatus(
@@ -93,7 +115,7 @@ public class TestParameterService {
         TestParameterMaster entity = repository.findByIdAndStatus(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("TestParameter", id));
 
-        validateBusinessRules(request, id);
+        validateBusinessRules(request);
 
         // Check duplicate with different id
         if (repository.existsByProductIdAndParameterNameAndIdNotAndStatus(
@@ -130,7 +152,7 @@ public class TestParameterService {
 
     // --- Business rule validation ---
 
-    private void validateBusinessRules(TestParameterRequest request, Long excludeId) {
+    private void validateBusinessRules(TestParameterRequest request) {
         // V-05: minLimit < maxLimit if both provided
         if (request.getMinLimit() != null && request.getMaxLimit() != null) {
             if (request.getMinLimit().compareTo(request.getMaxLimit()) >= 0) {

@@ -31,16 +31,23 @@ public class TestParameterController {
     // --- READ ---
 
     @GetMapping
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_READ + "')")
+    @PreAuthorize("hasAuthority('ROLE_TEST_PARAMETER_READ')")
     public ResponseEntity<ApiResponse<List<TestParameterResponse>>> list(
             @RequestParam(required = false) Integer productId,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String standardReference) {
 
         List<TestParameterResponse> result;
-        if (search != null && !search.isBlank()) {
+        if (search != null && !search.isBlank() && productId != null) {
+            result = service.searchByProductIdAndName(productId, search);
+        } else if (search != null && !search.isBlank()) {
             result = service.search(search);
+        } else if (productId != null && standardReference != null && !standardReference.isBlank()) {
+            result = service.listByProductIdAndStandard(productId, standardReference);
         } else if (productId != null) {
             result = service.listByProductId(productId);
+        } else if (standardReference != null && !standardReference.isBlank()) {
+            result = service.listByStandard(standardReference);
         } else {
             result = service.listAll();
         }
@@ -48,7 +55,7 @@ public class TestParameterController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_READ + "')")
+    @PreAuthorize("hasAuthority('ROLE_TEST_PARAMETER_READ')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(service.getById(id)));
     }
@@ -56,7 +63,7 @@ public class TestParameterController {
     // --- CREATE ---
 
     @PostMapping
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_CREATE + "')")
+    @PreAuthorize("hasAuthority('ROLE_TEST_PARAMETER_CREATE')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> create(
             @Valid @RequestBody TestParameterRequest request) {
         TestParameterResponse response = service.create(request, null);
@@ -66,7 +73,7 @@ public class TestParameterController {
     // --- UPDATE ---
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_UPDATE + "')")
+    @PreAuthorize("hasAuthority('ROLE_TEST_PARAMETER_UPDATE')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody TestParameterRequest request) {
@@ -77,7 +84,7 @@ public class TestParameterController {
     // --- DELETE ---
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_DELETE + "')")
+    @PreAuthorize("hasAuthority('ROLE_TEST_PARAMETER_DELETE')")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Test parameter deleted successfully"));
