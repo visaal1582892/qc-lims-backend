@@ -69,6 +69,10 @@ public class SampleInwardRegister extends BaseEntity {
     @Column(name = "receipt_date")
     private LocalDate receiptDate;
 
+    /** Cross-reference to For_Information AR number (Phase 6) — stores the AR number of the source AR when this is a fresh analysis / retest linked to another AR */
+    @Column(name = "linked_for_info_ar_number", length = 50)
+    private String linkedForInfoArNumber;
+
     // --- AR lifecycle helpers (instance methods) ---
 
     /**

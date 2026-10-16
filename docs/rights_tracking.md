@@ -103,3 +103,18 @@ Whenever a new feature is developed, new rights must be added here.
 | ROLE_AR_STATUS_VIEW | Can view AR lifecycle status & completion rate | QC_ANALYST, QC_HEAD |
 | ROLE_AR_CLOSE | Can close an AR (mark COMPLETED) | QC_HEAD, QA_MANAGER |
 | ROLE_AR_CANCEL | Can cancel an AR | QC_HEAD, QA_MANAGER |
+
+---
+
+*Last updated: 2026-10-16 (Phase 6 — OOS Management rights added)*
+
+---
+
+### Phase 6 — OOS Management (Module 8)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_OOS_INCIDENT_CREATE | Can create OOS incidents (auto-trigger + manual) | QC_ANALYST |
+| ROLE_OOS_INCIDENT_UPDATE | Can update OOS incident details | QC_ANALYST, QC_HEAD |
+| ROLE_OOS_INCIDENT_VIEW | Can view OOS incident records | QC_ANALYST, QC_HEAD, QA_MANAGER |
+| ROLE_OOS_INCIDENT_APPROVE | Can authorize retest or reject batch | QC_HEAD, QA_MANAGER |

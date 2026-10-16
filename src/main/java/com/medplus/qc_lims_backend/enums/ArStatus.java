@@ -18,7 +18,9 @@ public enum ArStatus {
     IN_PROGRESS("IN_PROGRESS"),
     ALL_TESTS_COMPLETE("ALL_TESTS_COMPLETE"),
     COMPLETED("COMPLETED"),
-    CANCELLED("CANCELLED");
+    CANCELLED("CANCELLED"),
+    FOR_INFORMATION("FOR_INFORMATION"),
+    REJECTED("REJECTED");
 
     private final String dbValue;
 
@@ -54,6 +56,6 @@ public enum ArStatus {
      * Terminal statuses that close the AR lifecycle.
      */
     public boolean isTerminal() {
-        return this == COMPLETED || this == CANCELLED;
+        return this == COMPLETED || this == CANCELLED || this == FOR_INFORMATION || this == REJECTED;
     }
 }

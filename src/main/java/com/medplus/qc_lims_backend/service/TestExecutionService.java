@@ -62,6 +62,7 @@ public class TestExecutionService {
     private final QcInventoryRepository qcInventoryRepository;
     private final QcInventoryService qcInventoryService;
     private final InwardService inwardService;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     // --- READ operations (readOnly by default) ---
 
@@ -333,6 +334,64 @@ public class TestExecutionService {
         }
 
         log.info("Result submitted: executionId={}, compliance={}", executionId, entity.getComplianceFlag());
+
+        // Phase 6: OOS auto-trigger — if compliance is FAIL/OOS, publish event for OOS incident creation
+        if ("Fail".equalsIgnoreCase(entity.getComplianceFlag()) || "OOS".equalsIgnoreCase(entity.getComplianceFlag())) {
+            try {
+                // Derive product/batch context from the linked SampleInwardRegister
+                String productName = null;
+                Integer productId = null;
+                String batchNo = null;
+                Optional<SampleInwardRegister> inwardOpt = inwardRepository
+                        .findByArNumberAndStatus(entity.getArNumber(), RecordStatus.ACTIVE);
+                if (inwardOpt.isPresent()) {
+                    SampleInwardRegister inward = inwardOpt.get();
+                    productId = inward.getProductId();
+                    batchNo = inward.getBatchNo();
+                    // Note: productName is not available on SampleInwardRegister;
+                    // it would require a join to the Company DB product master (SRS Module 5.1)
+                }
+
+                // Get test context from parameter master
+                String testCode = null;
+                String specificationReference = null;
+                String unitOfMeasurement = null;
+                String testMethodName = null;
+                Optional<TestParameterMaster> paramOpt = parameterRepository.findById(entity.getParameterId().longValue());
+                if (paramOpt.isPresent()) {
+                    TestParameterMaster param = paramOpt.get();
+                    testCode = param.getParameterName(); // Use parameter name as test code
+                    specificationReference = param.getMinLimit() != null && param.getMaxLimit() != null
+                            ? param.getMinLimit().toPlainString() + "-" + param.getMaxLimit().toPlainString()
+                            : param.getTextSpecification();
+                    testMethodName = param.getStandardReference(); // Standard reference as method name
+                }
+
+                com.medplus.qc_lims_backend.event.TestResultOosEvent oosEvent =
+                    new com.medplus.qc_lims_backend.event.TestResultOosEvent(
+                        this,
+                        entity.getId(),
+                        entity.getArNumber(),
+                        testCode,
+                        productName,
+                        productId,
+                        batchNo,
+                        specificationReference,
+                        entity.getResultNumericValue() != null ? entity.getResultNumericValue().toPlainString()
+                                : entity.getResultTextValue(),
+                        unitOfMeasurement,
+                        testMethodName,
+                        analystId
+                    );
+                eventPublisher.publishEvent(oosEvent);
+                log.info("OOS event published for executionId={}", executionId);
+            } catch (Exception e) {
+                // Do not let OOS creation failure block result recording
+                log.error("Failed to publish OOS event for executionId={}: {}",
+                        executionId, e.getMessage(), e);
+            }
+        }
+
         refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }

@@ -89,4 +89,15 @@ public final class Rights {
     public static final String ROLE_QC_HEAD_REVIEW     = "ROLE_QC_HEAD_REVIEW";
     public static final String ROLE_QA_HEAD_REVIEW     = "ROLE_QA_HEAD_REVIEW";
     public static final String ROLE_REVIEW_HISTORY_VIEW = "ROLE_REVIEW_HISTORY_VIEW";
+
+    // OOS Management (Phase 6) — SRS Module 8
+    public static final String ROLE_OOS_RAISE          = "ROLE_OOS_RAISE";
+    public static final String ROLE_OOS_INVESTIGATE    = "ROLE_OOS_INVESTIGATE";
+    public static final String ROLE_OOS_RETEST         = "ROLE_OOS_RETEST";
+    public static final String ROLE_BATCH_REJECT       = "ROLE_BATCH_REJECT";
+    public static final String ROLE_OOS_VIEW           = "ROLE_OOS_VIEW";
+
+    // Trial Test & For Information (Phase 6) — SRS Module 9
+    public static final String ROLE_TRIAL_TEST_CLOSE   = "ROLE_TRIAL_TEST_CLOSE";
+    public static final String ROLE_AR_GENERATE_FRESH  = "ROLE_AR_GENERATE_FRESH";
 }

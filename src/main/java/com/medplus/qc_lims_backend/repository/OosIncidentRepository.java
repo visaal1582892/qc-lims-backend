@@ -30,4 +30,37 @@ public interface OosIncidentRepository extends JpaRepository<OosIncidentRegister
      */
     @Query("SELECT COUNT(o) FROM OosIncidentRegister o WHERE o.finalDisposition IN ('Pending', 'Retest_Authorized') AND o.status = :status")
     long countActiveOosIncidents(@Param("status") RecordStatus status);
+
+    /**
+     * Find all OOS incidents for a given AR number (active records only).
+     */
+    List<OosIncidentRegister> findByArNumberAndStatusOrderByCreatedAtDesc(String arNumber, RecordStatus status);
+
+    /**
+     * Find pending OOS incidents for a given AR number.
+     */
+    @Query("SELECT o FROM OosIncidentRegister o WHERE o.arNumber = :arNumber AND o.finalDisposition = 'Pending' AND o.status = :status")
+    List<OosIncidentRegister> findPendingByArNumber(@Param("arNumber") String arNumber, @Param("status") RecordStatus status);
+
+    /**
+     * Find retest chain (child incidents linked to a parent).
+     */
+    List<OosIncidentRegister> findByRetestIncidentIdAndStatus(Long retestIncidentId, RecordStatus status);
+
+    /**
+     * Count OOS incidents per AR number.
+     */
+    @Query("SELECT COUNT(o) FROM OosIncidentRegister o WHERE o.arNumber = :arNumber AND o.status = :status")
+    long countByArNumber(@Param("arNumber") String arNumber, @Param("status") RecordStatus status);
+
+    /**
+     * Find OOS incident for a specific execution with given disposition.
+     */
+    @Query("SELECT o FROM OosIncidentRegister o WHERE o.executionId = :executionId AND o.finalDisposition = :disposition AND o.status = :status")
+    Optional<OosIncidentRegister> findByExecutionIdAndDisposition(@Param("executionId") Integer executionId, @Param("disposition") String disposition, @Param("status") RecordStatus status);
+
+    /**
+     * Find all active incidents by execution ID (for duplicate check).
+     */
+    List<OosIncidentRegister> findByExecutionIdAndStatus(Integer executionId, RecordStatus status);
 }

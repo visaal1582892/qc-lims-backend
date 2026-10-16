@@ -64,4 +64,41 @@ public class ArSequenceGenerator {
             throw ex;
         }
     }
+
+    /**
+     * Generate an OOS incident number: OOS-{year}{seq} (e.g. OOS-260001).
+     * Uses the same atomic INSERT ... ON CONFLICT pattern as AR number generation.
+     */
+    @Transactional
+    public String generateOosNumber() {
+        String calendarYear = String.valueOf(LocalDate.now().getYear()).substring(2); // '26'
+
+        try {
+            Query query = entityManager.createNativeQuery(
+                "INSERT INTO oos_sequence_tracker (calendar_year, last_sequence) " +
+                "VALUES (:year, 1) " +
+                "ON CONFLICT (calendar_year) DO UPDATE SET last_sequence = last_sequence + 1 " +
+                "RETURNING last_sequence"
+            );
+            query.setParameter("year", calendarYear);
+
+            Number result = (Number) Objects.requireNonNull(query.getSingleResult());
+            int sequence = result.intValue();
+
+            if (sequence > 9999) {
+                throw new BusinessRuleViolationException(
+                    "OOS sequence overflow for year " + calendarYear +
+                    ". Maximum 9999 sequences reached. Contact system administrator."
+                );
+            }
+
+            return String.format("OOS-%s%04d", calendarYear, sequence);
+        } catch (JpaSystemException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("PessimisticLockingFailure")) {
+                throw new RuntimeException(
+                    "Another operation is currently in progress. Please retry.", ex);
+            }
+            throw ex;
+        }
+    }
 }
