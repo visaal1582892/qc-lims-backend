@@ -351,7 +351,13 @@ public class TestExecutionService {
         validateTransition(executionId, entity, ExecutionStatus.REWORK_REQUESTED);
 
         entity.setExecutionStatus(ExecutionStatus.REWORK_REQUESTED.getDbValue());
-        entity.setReworkReason(request.getReason());
+
+        // Append rework reason, preserving any prior reassignment audit log
+        String existing = entity.getReworkReason();
+        String reworkEntry = String.format("[Rework requested on %s: %s]", Instant.now(), request.getReason());
+        entity.setReworkReason(existing != null && !existing.isBlank()
+                ? existing + "\n" + reworkEntry
+                : reworkEntry);
         entity = testExecutionRepository.save(entity);
 
         log.info("Rework requested: executionId={}, reason={}", executionId, request.getReason());
@@ -448,22 +454,22 @@ public class TestExecutionService {
 
     /**
      * Map a list of TestExecution entities to summary responses, resolving parameter names.
+     * Uses a single batch query to avoid N+1 database calls.
      */
     private List<TestExecutionSummaryResponse> mapToSummaryList(List<TestExecution> executions) {
-        // Batch-load parameter names to avoid N+1 queries
-        Map<Integer, String> paramNameMap = executions.stream()
+        // Collect distinct parameter IDs
+        java.util.Set<Integer> paramIds = executions.stream()
                 .map(TestExecution::getParameterId)
-                .distinct()
-                .map(pid -> {
-                    Optional<TestParameterMaster> paramOpt = parameterRepository.findByIdAndStatus(
-                            pid.longValue(), RecordStatus.ACTIVE);
-                    return paramOpt.map(p -> new java.util.AbstractMap.SimpleEntry<>(p.getId().intValue(), p.getParameterName()));
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Single batch query instead of one query per parameter
+        Map<Integer, String> paramNameMap = parameterRepository
+                .findByIdInAndStatus(paramIds.stream().map(Long::valueOf).collect(Collectors.toList()), RecordStatus.ACTIVE)
+                .stream()
                 .collect(Collectors.toMap(
-                        java.util.Map.Entry::getKey,
-                        java.util.Map.Entry::getValue,
+                        p -> p.getId().intValue(),
+                        TestParameterMaster::getParameterName,
                         (a, b) -> a
                 ));
 

@@ -16,5 +16,6 @@ public class TestStatusUpdateRequest {
     @NotBlank(message = "Status is required")
     private String newStatus;
 
+    @NotBlank(message = "Reason is required")
     private String reason;
 }

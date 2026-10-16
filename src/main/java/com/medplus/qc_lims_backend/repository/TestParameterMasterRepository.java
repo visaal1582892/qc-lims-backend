@@ -30,4 +30,6 @@ public interface TestParameterMasterRepository extends JpaRepository<TestParamet
             Integer productId, String parameterName, Long id, RecordStatus status);
 
     Optional<TestParameterMaster> findByIdAndStatus(Long id, RecordStatus status);
+
+    List<TestParameterMaster> findByIdInAndStatus(java.util.Collection<Long> ids, RecordStatus status);
 }

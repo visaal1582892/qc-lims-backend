@@ -60,8 +60,9 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, Lo
             String arNumber, Integer parameterId, java.util.List<String> excludedStatuses, RecordStatus status);
 
     /**
-     * Find AR numbers from sample_inward_register that have no active test executions yet.
-     * Used for the pending allocations list.
+     * Find AR numbers that have active (non-terminal) test executions.
+     * Active = status is ACTIVE and execution_status is NOT Released or Cancelled_Not_Performed.
+     * Used by TestExecutionService.getPendingAllocations() to filter out ARs that already have active tests.
      */
     @Query("SELECT DISTINCT te.arNumber FROM TestExecution te WHERE te.status = :status AND te.executionStatus NOT IN ('Released', 'Cancelled_Not_Performed')")
     java.util.List<String> findArNumbersWithActiveExecutions(@Param("status") RecordStatus status);

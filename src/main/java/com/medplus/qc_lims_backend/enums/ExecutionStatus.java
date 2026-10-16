@@ -82,7 +82,7 @@ public enum ExecutionStatus {
     private static final java.util.Map<ExecutionStatus, Set<ExecutionStatus>> ALLOWED_TRANSITIONS;
 
     static {
-        ALLOWED_TRANSITIONS = new java.util.HashMap<>();
+        ALLOWED_TRANSITIONS = new java.util.EnumMap<>(ExecutionStatus.class);
         ALLOWED_TRANSITIONS.put(ALLOCATED, EnumSet.of(TESTING, HOLD, CANCELLED_NOT_PERFORMED));
         ALLOWED_TRANSITIONS.put(TESTING, EnumSet.of(HOLD, UNDER_REVIEW, CANCELLED_NOT_PERFORMED));
         ALLOWED_TRANSITIONS.put(HOLD, EnumSet.of(TESTING, CANCELLED_NOT_PERFORMED));

@@ -591,7 +591,7 @@ class TestExecutionServiceTest {
 
         TestExecutionResponse response = service.requestRework(1L, request, 1L);
         assertEquals("Rework_Requested", response.executionStatus());
-        assertEquals("Results need verification", response.reworkReason());
+        assertTrue(response.reworkReason().contains("Results need verification"));
     }
 
     @Test
