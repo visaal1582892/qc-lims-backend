@@ -69,4 +69,14 @@ public final class Rights {
     // Barcoding (Phase 3) — SRS Module 4
     public static final String ROLE_BARCODE_GENERATE = "ROLE_BARCODE_GENERATE";
     public static final String ROLE_BARCODE_PRINT    = "ROLE_BARCODE_PRINT";
+
+    // Test Allocation & Execution State Machine (Phase 4) — SRS Module 6
+    public static final String ROLE_TEST_VIEW     = "ROLE_TEST_VIEW";
+    public static final String ROLE_TEST_ALLOCATE = "ROLE_TEST_ALLOCATE";
+    public static final String ROLE_TEST_EXECUTE  = "ROLE_TEST_EXECUTE";
+    public static final String ROLE_TEST_REASSIGN = "ROLE_TEST_REASSIGN";
+    public static final String ROLE_TEST_HOLD     = "ROLE_TEST_HOLD";
+    public static final String ROLE_TEST_CANCEL   = "ROLE_TEST_CANCEL";
+    public static final String ROLE_TEST_SUBMIT   = "ROLE_TEST_SUBMIT";
+    public static final String ROLE_TEST_APPROVE  = "ROLE_TEST_APPROVE";
 }

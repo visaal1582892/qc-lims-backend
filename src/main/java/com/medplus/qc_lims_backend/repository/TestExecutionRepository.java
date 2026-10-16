@@ -51,4 +51,18 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, Lo
      */
     @Query("SELECT te.allocatedToAnalystId, COUNT(te) FROM TestExecution te WHERE te.createdAt >= :from AND te.createdAt <= :to AND te.status = :status GROUP BY te.allocatedToAnalystId")
     List<Object[]> countTestsByAnalystAndDateRange(@Param("from") java.time.Instant from, @Param("to") java.time.Instant to, @Param("status") RecordStatus status);
+
+    /**
+     * Check for duplicate active allocation: same (ar_number, parameter_id) with status not Released or Cancelled.
+     * Used by TestExecutionService.allocateTest() to enforce BR-01.
+     */
+    boolean existsByArNumberAndParameterIdAndExecutionStatusNotInAndStatus(
+            String arNumber, Integer parameterId, java.util.List<String> excludedStatuses, RecordStatus status);
+
+    /**
+     * Find AR numbers from sample_inward_register that have no active test executions yet.
+     * Used for the pending allocations list.
+     */
+    @Query("SELECT DISTINCT te.arNumber FROM TestExecution te WHERE te.status = :status AND te.executionStatus NOT IN ('Released', 'Cancelled_Not_Performed')")
+    java.util.List<String> findArNumbersWithActiveExecutions(@Param("status") RecordStatus status);
 }
