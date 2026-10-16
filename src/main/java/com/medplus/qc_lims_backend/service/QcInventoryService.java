@@ -182,7 +182,7 @@ public class QcInventoryService {
 
     @Transactional
     public QcInventoryResponse allocateQuantity(Long id, AllocateRequest request) {
-        QcInventory entity = inventoryRepository.findByIdAndStatusForUpdate(id, RecordStatus.ACTIVE)
+        QcInventory entity = inventoryRepository.findByIdAndStatusWithLock(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("QcInventory", id));
 
         int currentAllocated = entity.getQuantityAllocated() == null ? 0 : entity.getQuantityAllocated();
@@ -204,7 +204,7 @@ public class QcInventoryService {
 
     @Transactional
     public QcInventoryResponse recordConsumption(Long id, ConsumeRequest request) {
-        QcInventory entity = inventoryRepository.findByIdAndStatusForUpdate(id, RecordStatus.ACTIVE)
+        QcInventory entity = inventoryRepository.findByIdAndStatusWithLock(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("QcInventory", id));
 
         int currentConsumed = entity.getQuantityConsumed() == null ? 0 : entity.getQuantityConsumed();

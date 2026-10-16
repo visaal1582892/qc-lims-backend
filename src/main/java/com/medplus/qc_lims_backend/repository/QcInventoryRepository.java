@@ -44,7 +44,7 @@ public interface QcInventoryRepository extends JpaRepository<QcInventory, Long> 
 
     /** PESSIMISTIC_WRITE lock for concurrent allocation */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<QcInventory> findByIdAndStatusForUpdate(Long id, RecordStatus status);
+    Optional<QcInventory> findByIdAndStatusWithLock(Long id, RecordStatus status);
 
     long countByStatus(RecordStatus status);
 
