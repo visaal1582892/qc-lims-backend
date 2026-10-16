@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS subcontract_register (
 -- Index for lookup by TRF
 CREATE INDEX IF NOT EXISTS idx_subcontract_trf_id ON subcontract_register(trf_id);
 
+-- FK constraint on TRF reference
+ALTER TABLE subcontract_register ADD CONSTRAINT fk_subcontract_register_trf FOREIGN KEY (trf_id) REFERENCES trf_master(id);
+
 -- Index for lookup by AR number (will be NULL for subcontracted samples)
 CREATE INDEX IF NOT EXISTS idx_subcontract_ar_number ON subcontract_register(ar_number) WHERE ar_number IS NOT NULL;
 
