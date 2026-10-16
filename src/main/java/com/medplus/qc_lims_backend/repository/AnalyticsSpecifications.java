@@ -77,12 +77,15 @@ public final class AnalyticsSpecifications {
             LocalDate dateTo,
             String arStatus) {
 
-        Specification<SampleInwardRegister> spec =
-                Specification.where((Specification<SampleInwardRegister>) null);
-        spec = spec.and(withManufacturerIdTrfIds(manufacturerTrfIds));
-        spec = spec.and(withBatchNumber(batchNumber));
-        spec = spec.and(withDateRange(dateFrom, dateTo));
-        spec = spec.and(withArStatus(arStatus));
+        Specification<SampleInwardRegister> spec = (root, query, cb) -> cb.conjunction();
+        Specification<SampleInwardRegister> mfgSpec = withManufacturerIdTrfIds(manufacturerTrfIds);
+        if (mfgSpec != null) spec = spec.and(mfgSpec);
+        Specification<SampleInwardRegister> batchSpec = withBatchNumber(batchNumber);
+        if (batchSpec != null) spec = spec.and(batchSpec);
+        Specification<SampleInwardRegister> dateSpec = withDateRange(dateFrom, dateTo);
+        if (dateSpec != null) spec = spec.and(dateSpec);
+        Specification<SampleInwardRegister> arSpec = withArStatus(arStatus);
+        if (arSpec != null) spec = spec.and(arSpec);
         return spec;
     }
 }
