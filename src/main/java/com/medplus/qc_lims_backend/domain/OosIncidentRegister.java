@@ -33,10 +33,6 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 public class OosIncidentRegister extends BaseEntity {
 
-    @Column(name = "incident_id")
-    @EqualsAndHashCode.Include
-    private Long id;
-
     @Column(name = "incident_number", nullable = false, length = 100)
     private String incidentNumber;
 

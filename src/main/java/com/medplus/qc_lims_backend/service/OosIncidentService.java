@@ -17,7 +17,7 @@ import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import com.medplus.qc_lims_backend.repository.TestExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -61,8 +61,7 @@ public class OosIncidentService {
      * Listen for OOS events published by TestExecutionService.
      * Runs synchronously within the same transaction so rollback cascades.
      */
-    @EventListener
-    @Transactional
+    @TransactionalEventListener(phase = org.springframework.transaction.event.TransactionPhase.BEFORE_COMMIT)
     public void handleOosEvent(TestResultOosEvent event) {
         try {
             log.info("OOS auto-trigger: arNumber={}, testCode={}", event.getArNumber(), event.getTestCode());
@@ -245,14 +244,18 @@ public class OosIncidentService {
         List<OosIncidentRegister> filtered = source.stream()
                 .filter(o -> status == null || status.isBlank() || status.equalsIgnoreCase(o.getOosStatus()))
                 .filter(o -> disposition == null || disposition.isBlank() || disposition.equalsIgnoreCase(o.getFinalDisposition()))
+                .toList();
+
+        long total = filtered.size();
+        List<OosIncidentRegister> page = filtered.stream()
                 .skip(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .toList();
 
         return new org.springframework.data.domain.PageImpl<>(
-                filtered.stream().map(OosIncidentResponse::fromEntity).toList(),
+                page.stream().map(OosIncidentResponse::fromEntity).toList(),
                 pageable,
-                filtered.size());
+                total);
     }
 
     // ========================================================================

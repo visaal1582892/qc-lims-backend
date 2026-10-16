@@ -67,6 +67,16 @@ public class DocumentManagementController {
     }
 
     /**
+     * DM-06: List all documents (global view).
+     */
+    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('ROLE_DOCUMENT_VIEW')")
+    public ResponseEntity<ApiResponse<List<DocumentResponse>>> listAllDocuments() {
+        List<DocumentResponse> documents = documentManagementService.listAllDocuments();
+        return ResponseEntity.ok(ApiResponse.ok(documents));
+    }
+
+    /**
      * DM-04: Download a document by file ID.
      * Returns the file as an inline attachment.
      */

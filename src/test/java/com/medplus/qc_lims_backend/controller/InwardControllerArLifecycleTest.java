@@ -37,8 +37,8 @@ class InwardControllerArLifecycleTest {
 
     private InwardResponse makeInwardResponse() {
         return new InwardResponse(
-                1L, "MHSL260001", 1, 100, "BATCH-001",
-                10, 100, "Refrigerator", "ALL_TESTS_COMPLETE",
+                1L, "MHSL260001", 1, 100, null, "BATCH-001",
+                10, 100, "Refrigerator", "ALL_TESTS_COMPLETE", null,
                 false, null, null, LocalDate.of(2026, 1, 15),
                 null, null, null);
     }

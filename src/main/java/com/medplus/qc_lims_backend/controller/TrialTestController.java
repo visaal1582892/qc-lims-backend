@@ -29,7 +29,7 @@ public class TrialTestController {
      * Transitions AR from COMPLETED/ALL_TESTS_COMPLETE to FOR_INFORMATION status.
      */
     @PostMapping("/{arNumber}/mark-for-information")
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_AR_GENERATE_FRESH + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRIAL_TEST_CLOSE + "')")
     public ResponseEntity<ApiResponse<InwardResponse>> markForInformation(
             @PathVariable String arNumber,
             @RequestParam(required = false, defaultValue = "Trial test required") String reason) {
@@ -42,7 +42,7 @@ public class TrialTestController {
      * Creates a new AR linked back to the For_Information AR via linkedForInfoArNumber.
      */
     @PostMapping("/{arNumber}/generate-fresh-ar")
-    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRIAL_TEST_CLOSE + "')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_AR_GENERATE_FRESH + "')")
     public ResponseEntity<ApiResponse<InwardResponse>> generateFreshAr(
             @PathVariable String arNumber) {
         var inward = trialTestService.generateFreshAr(arNumber);

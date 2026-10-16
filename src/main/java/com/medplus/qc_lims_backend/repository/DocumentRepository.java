@@ -30,6 +30,9 @@ public interface DocumentRepository extends JpaRepository<DocumentRegistry, Long
     /** Find a single document by ID and active status. */
     Optional<DocumentRegistry> findByIdAndStatus(Long id, RecordStatus status);
 
+    /** Find all active documents ordered by upload date descending. */
+    List<DocumentRegistry> findAllByStatusOrderByUploadedAtDesc(RecordStatus status);
+
     /** Find documents for a given AR or execution. */
     @Query("SELECT d FROM DocumentRegistry d WHERE (d.arNumber = :arNumber OR d.executionId = :executionId) AND d.status = :status ORDER BY d.uploadedAt DESC")
     List<DocumentRegistry> findByArNumberOrExecutionId(

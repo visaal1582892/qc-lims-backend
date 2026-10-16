@@ -147,6 +147,18 @@ public class DocumentManagementService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * List all active documents (global view).
+     */
+    @Transactional(readOnly = true)
+    public List<DocumentResponse> listAllDocuments() {
+        List<DocumentRegistry> documents = documentRepository
+                .findAllByStatusOrderByUploadedAtDesc(RecordStatus.ACTIVE);
+        return documents.stream()
+                .map(DocumentResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     // ========================================================================
     // DM-04: Download Document
     // ========================================================================
