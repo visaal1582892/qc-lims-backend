@@ -16,4 +16,10 @@ public final class Rights {
     }
 
     // Rights will be added by feature phase (e.g., ROLE_INWARD_VIEW, ROLE_TEST_EXECUTE)
+
+    // Test Parameter Master (Phase 1) — SRS Module 1
+    public static final String ROLE_TEST_PARAMETER_READ   = "ROLE_TEST_PARAMETER_READ";
+    public static final String ROLE_TEST_PARAMETER_CREATE = "ROLE_TEST_PARAMETER_CREATE";
+    public static final String ROLE_TEST_PARAMETER_UPDATE = "ROLE_TEST_PARAMETER_UPDATE";
+    public static final String ROLE_TEST_PARAMETER_DELETE = "ROLE_TEST_PARAMETER_DELETE";
 }
