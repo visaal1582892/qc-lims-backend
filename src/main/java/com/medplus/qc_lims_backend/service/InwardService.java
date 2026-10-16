@@ -65,6 +65,12 @@ public class InwardService {
                 .toList();
     }
 
+    public List<InwardResponse> listByArStatus(String arStatus) {
+        return repository.findByArStatusAndStatus(arStatus, RecordStatus.ACTIVE).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // --- CREATE (mutating) ---
 
     @Transactional
@@ -76,15 +82,18 @@ public class InwardService {
                 ") cannot be less than received quantity packs (" + request.getReceivedQuantityPacks() + ").");
         }
 
-        // Business rule: V-07 validate storageLocation (handled by @Pattern in DTO)
+        // H-4: Validate subcontractRemarks is present when subcontracted
+        boolean isSubcontracted = Boolean.TRUE.equals(request.getIsSubcontracted());
+        if (isSubcontracted && (request.getSubcontractRemarks() == null || request.getSubcontractRemarks().isBlank())) {
+            throw new BusinessRuleViolationException(
+                "Subcontract remarks are required when subcontracted = true.");
+        }
 
         SampleInwardRegister entity = new SampleInwardRegister();
         populateEntity(entity, request);
         entity.setCreatedBy(createdBy);
         entity.setStatus(RecordStatus.ACTIVE);
         entity.setReceiptDate(LocalDate.now());
-
-        boolean isSubcontracted = Boolean.TRUE.equals(request.getIsSubcontracted());
 
         // V-01/V-02: Generate AR number for non-subcontracted; NULL for subcontracted
         if (!isSubcontracted) {

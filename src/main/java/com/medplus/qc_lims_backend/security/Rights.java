@@ -52,4 +52,21 @@ public final class Rights {
     // External Interface Hooks (Phase 9) — SRS Module 14
     public static final String ROLE_EXTERNAL_TOS_TRIGGER = "ROLE_EXTERNAL_TOS_TRIGGER";
     public static final String ROLE_EXTERNAL_TOS_UPDATE  = "ROLE_EXTERNAL_TOS_UPDATE";
+
+    // QC Inventory & Consumption Reconciliation (Phase 3) — SRS Module 5
+    public static final String ROLE_INVENTORY_READ     = "ROLE_INVENTORY_READ";
+    public static final String ROLE_INVENTORY_CREATE   = "ROLE_INVENTORY_CREATE";
+    public static final String ROLE_INVENTORY_UPDATE   = "ROLE_INVENTORY_UPDATE";
+    public static final String ROLE_INVENTORY_DELETE   = "ROLE_INVENTORY_DELETE";
+    public static final String ROLE_INVENTORY_ALLOCATE = "ROLE_INVENTORY_ALLOCATE";
+    public static final String ROLE_INVENTORY_CONSUME  = "ROLE_INVENTORY_CONSUME";
+    public static final String ROLE_INVENTORY_VARIANCE = "ROLE_INVENTORY_VARIANCE";
+
+    // Storage Allocation (Phase 3) — SRS Module 4
+    public static final String ROLE_STORAGE_ASSIGN = "ROLE_STORAGE_ASSIGN";
+    public static final String ROLE_STORAGE_VIEW   = "ROLE_STORAGE_VIEW";
+
+    // Barcoding (Phase 3) — SRS Module 4
+    public static final String ROLE_BARCODE_GENERATE = "ROLE_BARCODE_GENERATE";
+    public static final String ROLE_BARCODE_PRINT    = "ROLE_BARCODE_PRINT";
 }

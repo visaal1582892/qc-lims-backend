@@ -45,6 +45,12 @@ public class InwardController {
         return ResponseEntity.ok(ApiResponse.ok(inwardService.searchByBatchNo(batchNo)));
     }
 
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_VIEW + "')")
+    @GetMapping("/status/{arStatus}")
+    public ResponseEntity<ApiResponse<List<InwardResponse>>> listByStatus(@PathVariable String arStatus) {
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.listByArStatus(arStatus)));
+    }
+
     @PreAuthorize("hasAuthority('" + Rights.ROLE_INWARD_CREATE + "')")
     @PostMapping
     public ResponseEntity<ApiResponse<InwardResponse>> create(@Valid @RequestBody CreateInwardRequest request) {

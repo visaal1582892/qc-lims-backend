@@ -1,6 +1,7 @@
 package com.medplus.qc_lims_backend.dto.request;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -9,7 +10,8 @@ import lombok.Setter;
 
 /**
  * Request DTO for updating an inward registration record.
- * All fields optional for partial update, but productId and batchNo remain mandatory.
+ * All fields are optional for partial update; productId and batchNo are included
+ * for reference and are validated when provided.
  */
 @Getter
 @Setter
@@ -18,6 +20,7 @@ public class UpdateInwardRequest {
     @NotNull(message = "Product ID is required")
     private Integer productId;
 
+    @NotBlank(message = "Batch number is required")
     @Size(max = 100, message = "Batch number must be at most 100 characters")
     private String batchNo;
 

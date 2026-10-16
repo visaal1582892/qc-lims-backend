@@ -27,37 +27,37 @@ public class TrfController {
 
     private final TrfService trfService;
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_VIEW + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_VIEW + "')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<TrfResponse>>> listAll() {
         return ResponseEntity.ok(ApiResponse.ok(trfService.listAll()));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_VIEW + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_VIEW + "')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TrfResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(trfService.getById(id)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_VIEW + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_VIEW + "')")
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<TrfResponse>>> listByStatus(@PathVariable String status) {
         return ResponseEntity.ok(ApiResponse.ok(trfService.listByStatus(status)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_VIEW + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_VIEW + "')")
     @GetMapping("/search/grn")
     public ResponseEntity<ApiResponse<List<TrfResponse>>> searchByGrn(@RequestParam String grnNumber) {
         return ResponseEntity.ok(ApiResponse.ok(trfService.searchByGrnNumber(grnNumber)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_CREATE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_CREATE + "')")
     @PostMapping
     public ResponseEntity<ApiResponse<TrfResponse>> create(@Valid @RequestBody TrfCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(trfService.create(request, null)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_UPDATE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_UPDATE + "')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<TrfResponse>> update(
             @PathVariable Long id,
@@ -65,7 +65,7 @@ public class TrfController {
         return ResponseEntity.ok(ApiResponse.ok(trfService.update(id, request, null)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_DELETE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_DELETE + "')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         trfService.delete(id);
@@ -74,13 +74,13 @@ public class TrfController {
 
     // --- Lifecycle transitions ---
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_ACCEPT + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_ACCEPT + "')")
     @PostMapping("/{id}/accept")
     public ResponseEntity<ApiResponse<TrfResponse>> accept(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(trfService.accept(id, null)));
     }
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_REJECT + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_REJECT + "')")
     @PostMapping("/{id}/reject")
     public ResponseEntity<ApiResponse<TrfResponse>> reject(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(trfService.reject(id, null)));
@@ -88,7 +88,7 @@ public class TrfController {
 
     // --- QC Head parameter assignment ---
 
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TRF_ASSIGN_PARAMETERS + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TRF_ASSIGN_PARAMETERS + "')")
     @PostMapping("/{id}/assign-parameters")
     public ResponseEntity<ApiResponse<Void>> assignParameters(
             @PathVariable Long id,

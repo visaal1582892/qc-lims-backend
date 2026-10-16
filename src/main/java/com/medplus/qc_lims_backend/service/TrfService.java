@@ -81,6 +81,8 @@ public class TrfService {
         TrfMaster entity = new TrfMaster();
         populateEntity(entity, request);
         entity.setCreatedBy(createdBy);
+        // B-1 fix: submittedByUserId from service-layer context, not client input
+        entity.setSubmittedByUserId(createdBy != null ? createdBy.intValue() : null);
         entity.setStatus(RecordStatus.ACTIVE);
         entity.setTrfStatus("Pending_Feasibility");
         entity.setSubmittedAt(LocalDateTime.now());
@@ -160,8 +162,9 @@ public class TrfService {
         entity.setUpdatedBy(updatedBy);
 
         // If test parameters are being updated, replace junction records
-        if (request.getTestParameterIds() != null) {
-            trfTestParameterRepository.deleteByTrfIdAndStatus(entity.getId().intValue(), RecordStatus.ACTIVE);
+        // M-3: Guard against empty list — prevents deleting all parameters without adding any
+        if (request.getTestParameterIds() != null && !request.getTestParameterIds().isEmpty()) {
+            trfTestParameterRepository.softDeleteByTrfIdAndStatus(entity.getId().intValue(), RecordStatus.ACTIVE);
             for (Integer paramId : request.getTestParameterIds()) {
                 TrfTestParameter junction = new TrfTestParameter();
                 junction.setTrfId(entity.getId().intValue());
@@ -217,8 +220,13 @@ public class TrfService {
         TrfMaster entity = trfRepository.findByIdAndStatus(trfId, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("e-TRF", trfId));
 
-        // Delete existing junction records
-        trfTestParameterRepository.deleteByTrfIdAndStatus(entity.getId().intValue(), RecordStatus.ACTIVE);
+        // M-2: Guard against empty parameter list — prevents accidental deletion of all parameters
+        if (parameterIds == null || parameterIds.isEmpty()) {
+            throw new BusinessRuleViolationException("At least one test parameter must be assigned.");
+        }
+
+        // Delete existing junction records (soft delete)
+        trfTestParameterRepository.softDeleteByTrfIdAndStatus(entity.getId().intValue(), RecordStatus.ACTIVE);
 
         // Insert new junction records
         for (Integer paramId : parameterIds) {
@@ -305,7 +313,6 @@ public class TrfService {
         entity.setStpVersionNo(request.getStpVersionNo());
         entity.setGrnNumber(request.getGrnNumber());
         entity.setManufacturerId(request.getManufacturerId());
-        entity.setSubmittedByUserId(request.getSubmittedByUserId());
     }
 
     // --- DTO conversion ---

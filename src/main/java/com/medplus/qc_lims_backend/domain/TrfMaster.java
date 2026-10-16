@@ -100,7 +100,7 @@ public class TrfMaster extends BaseEntity {
     @Column(name = "submission_type_desc", length = 150)
     private String submissionTypeDesc;
 
-    @Column(name = "analysis_type", length = 100)
+    @Column(name = "analysis_type", nullable = false, length = 100)
     private String analysisType;
 
     @Column(name = "regulatory_form_type", length = 100)

@@ -45,4 +45,32 @@ Whenever a new feature is developed, new rights must be added here.
 
 ---
 
-*Last updated: 2026-10-16 (Phase 2 — Inward, e-TRF, Receipt Checklist rights added)*
+### Phase 3 — QC Inventory & Consumption Reconciliation (Module 5)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_INVENTORY_READ | Can view QC inventory records | QC_ANALYST, QC_HEAD |
+| ROLE_INVENTORY_CREATE | Can create new QC inventory records | QC_ANALYST, QC_HEAD |
+| ROLE_INVENTORY_UPDATE | Can edit existing QC inventory records | QC_HEAD |
+| ROLE_INVENTORY_DELETE | Can soft-delete QC inventory records | QC_HEAD, ADMIN |
+| ROLE_INVENTORY_ALLOCATE | Can allocate sample quantity to analyst | QC_HEAD |
+| ROLE_INVENTORY_CONSUME | Can record consumed sample quantity | QC_ANALYST |
+| ROLE_INVENTORY_VARIANCE | Can view variance reconciliation reports | QC_HEAD, QA_MANAGER |
+
+### Phase 3 — Storage Allocation (Module 4)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_STORAGE_ASSIGN | Can assign physical storage location | QC_ANALYST, QC_HEAD |
+| ROLE_STORAGE_VIEW | Can view storage allocation overview | QC_ANALYST, QC_HEAD |
+
+### Phase 3 — Barcoding (Module 4)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_BARCODE_GENERATE | Can generate barcode labels | QC_ANALYST, QC_HEAD |
+| ROLE_BARCODE_PRINT | Can print barcode labels | QC_ANALYST, QC_HEAD |
+
+---
+
+*Last updated: 2026-10-16 (Phase 3 — Inventory, Storage Allocation, Barcoding rights added)*

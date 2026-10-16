@@ -41,6 +41,7 @@ public class TrfCreateRequest {
     private Integer productId;
 
     @NotBlank(message = "Batch numbers are required")
+    @Size(max = 500)
     private String batchNumbers;
 
     @Size(max = 100)
@@ -124,6 +125,7 @@ public class TrfCreateRequest {
     @NotNull(message = "Manufacturer ID is required")
     private Integer manufacturerId;
 
-    @NotNull(message = "Submitted by user ID is required")
+    // submittedByUserId is optional here — the service layer sets it from the
+    // authenticated principal (SecurityContextHolder) to prevent client spoofing.
     private Integer submittedByUserId;
 }

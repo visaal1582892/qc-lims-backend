@@ -27,5 +27,7 @@ public interface SampleInwardRepository extends JpaRepository<SampleInwardRegist
 
     List<SampleInwardRegister> findByTrfIdAndStatus(Integer trfId, RecordStatus status);
 
+    List<SampleInwardRegister> findByArStatusAndStatus(String arStatus, RecordStatus status);
+
     long countByStatus(RecordStatus status);
 }
