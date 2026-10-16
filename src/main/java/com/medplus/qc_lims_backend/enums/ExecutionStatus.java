@@ -71,9 +71,11 @@ public enum ExecutionStatus {
 
     /**
      * Whether this is a terminal state (no outgoing transitions).
+     * RELEASED can now transition to REWORK_REQUESTED (per H-02 correction),
+     * so it is no longer terminal.
      */
     public boolean isTerminal() {
-        return this == CANCELLED_NOT_PERFORMED || this == RELEASED;
+        return this == CANCELLED_NOT_PERFORMED;
     }
 
     /**
@@ -90,6 +92,25 @@ public enum ExecutionStatus {
         ALLOWED_TRANSITIONS.put(REWORK_REQUESTED, EnumSet.of(TESTING));
         // Terminal states have no outgoing transitions:
         ALLOWED_TRANSITIONS.put(CANCELLED_NOT_PERFORMED, EnumSet.noneOf(ExecutionStatus.class));
-        ALLOWED_TRANSITIONS.put(RELEASED, EnumSet.noneOf(ExecutionStatus.class));
+        ALLOWED_TRANSITIONS.put(RELEASED, EnumSet.of(REWORK_REQUESTED));
+    }
+
+    /**
+     * Check if a DB-stored status string represents a terminal state
+     * for AR lifecycle purposes. Both Released and Cancelled_Not_Performed
+     * count as terminal for determining AR completion rate and status.
+     * Note: This differs from {@link #isTerminal()} which tracks state machine
+     * transitions — RELEASED can now go to REWORK_REQUESTED.
+     */
+    public static boolean isTerminalState(String status) {
+        return RELEASED.getDbValue().equals(status)
+                || CANCELLED_NOT_PERFORMED.getDbValue().equals(status);
+    }
+
+    /**
+     * Check if a DB-stored status string is non-terminal (test still active).
+     */
+    public static boolean isNonTerminalState(String status) {
+        return !isTerminalState(status);
     }
 }

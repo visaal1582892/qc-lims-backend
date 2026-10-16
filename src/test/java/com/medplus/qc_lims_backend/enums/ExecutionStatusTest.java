@@ -23,12 +23,14 @@ class ExecutionStatusTest {
     }
 
     @Test
-    void releasedIsTerminal() {
-        assertTrue(ExecutionStatus.RELEASED.isTerminal());
-        for (ExecutionStatus target : ExecutionStatus.values()) {
-            assertFalse(ExecutionStatus.RELEASED.canTransitionTo(target),
-                    "Released should not transition to " + target);
-        }
+    void releasedCanGoToReworkRequested() {
+        // H-02 correction: RELEASED -> REWORK_REQUESTED is now allowed
+        assertTrue(ExecutionStatus.RELEASED.canTransitionTo(ExecutionStatus.REWORK_REQUESTED));
+    }
+
+    @Test
+    void releasedCannotGoToTesting() {
+        assertFalse(ExecutionStatus.RELEASED.canTransitionTo(ExecutionStatus.TESTING));
     }
 
     // --- Allocated transitions ---
@@ -164,6 +166,19 @@ class ExecutionStatusTest {
     void fromDbValueReturnsNullForUnknown() {
         assertNull(ExecutionStatus.fromDbValue("Unknown"));
         assertNull(ExecutionStatus.fromDbValue(null));
+    }
+
+    // --- isTerminal checks ---
+
+    @Test
+    void cancelledIsTerminal() {
+        assertTrue(ExecutionStatus.CANCELLED_NOT_PERFORMED.isTerminal());
+    }
+
+    @Test
+    void releasedIsNotTerminalAnymore() {
+        // H-02: RELEASED can now transition to REWORK_REQUESTED
+        assertFalse(ExecutionStatus.RELEASED.isTerminal());
     }
 
     // --- requiresReasonOnEntry ---

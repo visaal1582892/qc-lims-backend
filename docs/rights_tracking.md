@@ -89,3 +89,17 @@ Whenever a new feature is developed, new rights must be added here.
 | ROLE_TEST_CANCEL | Can cancel unperformed tests | QC_HEAD |
 | ROLE_TEST_SUBMIT | Can submit results for review | QC_ANALYST |
 | ROLE_TEST_APPROVE | Can approve/rework test results | QC_HEAD, QA_MANAGER |
+
+---
+
+*Last updated: 2026-10-16 (Phase 5 — AR Lifecycle Management rights added)*
+
+---
+
+### Phase 5 — AR Lifecycle Management (Module 7)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_AR_STATUS_VIEW | Can view AR lifecycle status & completion rate | QC_ANALYST, QC_HEAD |
+| ROLE_AR_CLOSE | Can close an AR (mark COMPLETED) | QC_HEAD, QA_MANAGER |
+| ROLE_AR_CANCEL | Can cancel an AR | QC_HEAD, QA_MANAGER |

@@ -1,5 +1,6 @@
 package com.medplus.qc_lims_backend.controller;
 
+import com.medplus.qc_lims_backend.dto.request.ArLifecycleRequest;
 import com.medplus.qc_lims_backend.dto.request.CreateInwardRequest;
 import com.medplus.qc_lims_backend.dto.request.UpdateInwardRequest;
 import com.medplus.qc_lims_backend.dto.response.ApiResponse;
@@ -70,5 +71,23 @@ public class InwardController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         inwardService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok(null));
+    }
+
+    // --- AR Lifecycle endpoints (Phase 5) ---
+
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_AR_CLOSE + "')")
+    @PostMapping("/{id}/ar-close")
+    public ResponseEntity<ApiResponse<InwardResponse>> closeAr(
+            @PathVariable Long id,
+            @Valid @RequestBody ArLifecycleRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.closeAr(id, request, null)));
+    }
+
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_AR_CANCEL + "')")
+    @PostMapping("/{id}/ar-cancel")
+    public ResponseEntity<ApiResponse<InwardResponse>> cancelAr(
+            @PathVariable Long id,
+            @Valid @RequestBody ArLifecycleRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(inwardService.cancelAr(id, request, null)));
     }
 }

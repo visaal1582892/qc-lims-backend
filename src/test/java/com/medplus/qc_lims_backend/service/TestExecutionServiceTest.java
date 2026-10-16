@@ -64,6 +64,7 @@ class TestExecutionServiceTest {
     @Mock private TestParameterMasterRepository parameterRepository;
     @Mock private QcInventoryRepository qcInventoryRepository;
     @Mock private QcInventoryService qcInventoryService;
+    @Mock private InwardService inwardService;
 
     @InjectMocks private TestExecutionService service;
 

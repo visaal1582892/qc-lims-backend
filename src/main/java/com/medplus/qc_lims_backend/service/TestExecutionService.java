@@ -60,6 +60,7 @@ public class TestExecutionService {
     private final TestParameterMasterRepository parameterRepository;
     private final QcInventoryRepository qcInventoryRepository;
     private final QcInventoryService qcInventoryService;
+    private final InwardService inwardService;
 
     // --- READ operations (readOnly by default) ---
 
@@ -183,6 +184,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
         log.info("Test allocated: executionId={}, arNumber={}, parameterId={}, analystId={}",
                 entity.getId(), entity.getArNumber(), entity.getParameterId(), entity.getAllocatedToAnalystId());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -222,6 +224,7 @@ public class TestExecutionService {
 
         log.info("Test reassigned: executionId={}, from={}, to={}",
                 executionId, entity.getAllocatedToAnalystId(), request.getNewAnalystId());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -236,6 +239,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Test started: executionId={}", executionId);
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -255,6 +259,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Test put on hold: executionId={}, reason={}", executionId, request.getReason());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -274,6 +279,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Test cancelled: executionId={}, reason={}", executionId, request.getReason());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -325,6 +331,7 @@ public class TestExecutionService {
         }
 
         log.info("Result submitted: executionId={}, compliance={}", executionId, entity.getComplianceFlag());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -337,6 +344,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Test approved/released: executionId={}", executionId);
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -361,6 +369,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Rework requested: executionId={}, reason={}", executionId, request.getReason());
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -374,6 +383,7 @@ public class TestExecutionService {
         entity = testExecutionRepository.save(entity);
 
         log.info("Rework resumed: executionId={}", executionId);
+        refreshArStatus(entity.getArNumber());
         return TestExecutionResponse.fromEntity(entity);
     }
 
@@ -478,5 +488,17 @@ public class TestExecutionService {
                         entity,
                         paramNameMap.getOrDefault(entity.getParameterId(), "Unknown")))
                 .toList();
+    }
+
+    // --- AR lifecycle integration (Phase 5) ---
+
+    /**
+     * Recalculate AR status and completion rate after a test status change.
+     * Queries the repository for counts and delegates to InwardService.
+     */
+    private void refreshArStatus(String arNumber) {
+        long total = testExecutionRepository.countByArNumberAndStatus(arNumber, RecordStatus.ACTIVE);
+        long terminal = testExecutionRepository.countTerminalByArNumber(arNumber, RecordStatus.ACTIVE);
+        inwardService.updateTestCompletionAndStatus(arNumber, total, terminal);
     }
 }

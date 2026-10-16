@@ -3,6 +3,7 @@ package com.medplus.qc_lims_backend.dto.response;
 import com.medplus.qc_lims_backend.domain.SampleInwardRegister;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -21,6 +22,7 @@ public record InwardResponse(
     String arStatus,
     Boolean isSubcontracted,
     String subcontractRemarks,
+    BigDecimal testCompletionRate,
     LocalDate receiptDate,
     RecordStatus status,
     Instant createdAt,
@@ -39,6 +41,7 @@ public record InwardResponse(
             entity.getArStatus(),
             entity.getIsSubcontracted(),
             entity.getSubcontractRemarks(),
+            entity.getTestCompletionRate(),
             entity.getReceiptDate(),
             entity.getStatus(),
             entity.getCreatedAt(),

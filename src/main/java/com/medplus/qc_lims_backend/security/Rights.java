@@ -79,4 +79,9 @@ public final class Rights {
     public static final String ROLE_TEST_CANCEL   = "ROLE_TEST_CANCEL";
     public static final String ROLE_TEST_SUBMIT   = "ROLE_TEST_SUBMIT";
     public static final String ROLE_TEST_APPROVE  = "ROLE_TEST_APPROVE";
+
+    // AR Lifecycle Management (Phase 5) — SRS Module 7
+    public static final String ROLE_AR_CLOSE      = "ROLE_AR_CLOSE";
+    public static final String ROLE_AR_CANCEL     = "ROLE_AR_CANCEL";
+    public static final String ROLE_AR_STATUS_VIEW = "ROLE_AR_STATUS_VIEW";
 }

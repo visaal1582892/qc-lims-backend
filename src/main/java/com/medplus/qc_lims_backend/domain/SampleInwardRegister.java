@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import com.medplus.qc_lims_backend.enums.ArStatus;
+import jakarta.persistence.Convert;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -51,8 +54,11 @@ public class SampleInwardRegister extends BaseEntity {
     @Column(name = "storage_location", length = 100)
     private String storageLocation;
 
-    @Column(name = "ar_status", length = 50)
-    private String arStatus = "Active";
+    @Column(name = "ar_status", nullable = false, length = 32)
+    private String arStatus = "REGISTERED";
+
+    @Column(name = "test_completion_rate", nullable = false, precision = 5, scale = 2)
+    private BigDecimal testCompletionRate = BigDecimal.ZERO;
 
     @Column(name = "is_subcontracted")
     private Boolean isSubcontracted = false;
@@ -62,4 +68,20 @@ public class SampleInwardRegister extends BaseEntity {
 
     @Column(name = "receipt_date")
     private LocalDate receiptDate;
+
+    // --- AR lifecycle helpers (instance methods) ---
+
+    /**
+     * Return the ArStatus enum for this entity's ar_status.
+     */
+    public ArStatus getArStatusEnum() {
+        return ArStatus.fromDbValue(this.arStatus);
+    }
+
+    /**
+     * Convenience: set ar_status from an enum value.
+     */
+    public void setArStatusEnum(ArStatus status) {
+        this.arStatus = status.getDbValue();
+    }
 }

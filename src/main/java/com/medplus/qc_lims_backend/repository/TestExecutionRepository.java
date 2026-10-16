@@ -66,4 +66,16 @@ public interface TestExecutionRepository extends JpaRepository<TestExecution, Lo
      */
     @Query("SELECT DISTINCT te.arNumber FROM TestExecution te WHERE te.status = :status AND te.executionStatus NOT IN ('Released', 'Cancelled_Not_Performed')")
     java.util.List<String> findArNumbersWithActiveExecutions(@Param("status") RecordStatus status);
+
+    /**
+     * Count terminal test executions for a given AR.
+     * Terminal = Released or Cancelled_Not_Performed.
+     */
+    @Query("SELECT COUNT(te) FROM TestExecution te WHERE te.arNumber = :arNumber AND te.executionStatus IN ('Released', 'Cancelled_Not_Performed') AND te.status = :status")
+    long countTerminalByArNumber(@Param("arNumber") String arNumber, @Param("status") RecordStatus status);
+
+    /**
+     * Count all active test executions for a given AR.
+     */
+    long countByArNumberAndStatus(String arNumber, RecordStatus status);
 }

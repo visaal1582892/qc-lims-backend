@@ -1,17 +1,21 @@
 package com.medplus.qc_lims_backend.service;
 
 import com.medplus.qc_lims_backend.domain.SampleInwardRegister;
+import com.medplus.qc_lims_backend.dto.request.ArLifecycleRequest;
 import com.medplus.qc_lims_backend.dto.request.CreateInwardRequest;
 import com.medplus.qc_lims_backend.dto.request.UpdateInwardRequest;
 import com.medplus.qc_lims_backend.dto.response.InwardResponse;
+import com.medplus.qc_lims_backend.enums.ArStatus;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,6 +34,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class InwardService {
 
@@ -155,6 +160,97 @@ public class InwardService {
 
         entity.setStatus(RecordStatus.INACTIVE);
         repository.save(entity);
+    }
+
+    // --- AR LIFECYCLE — close / cancel (Phase 5) ---
+
+    /**
+     * Close an AR — allowed only when all allocated tests are terminal.
+     * Transition: ALL_TESTS_COMPLETE -> COMPLETED.
+     */
+    @Transactional
+    public InwardResponse closeAr(Long id, ArLifecycleRequest request, Long qcHeadId) {
+        SampleInwardRegister entity = repository.findByIdAndStatus(id, RecordStatus.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("InwardRegistration", id));
+
+        ArStatus current = entity.getArStatusEnum();
+        if (current == null || current != ArStatus.ALL_TESTS_COMPLETE) {
+            throw new BusinessRuleViolationException(
+                    "Cannot close AR: current status is '" + entity.getArStatus()
+                    + "'. AR must be in ALL_TESTS_COMPLETE status to close.");
+        }
+
+        entity.setArStatusEnum(ArStatus.COMPLETED);
+        entity.setUpdatedBy(qcHeadId);
+        entity = repository.save(entity);
+
+        log.info("AR closed: id={}, arNumber={}, by={}, reason={}",
+                id, entity.getArNumber(), qcHeadId, request.getReason());
+        return toResponse(entity);
+    }
+
+    /**
+     * Cancel an AR — allowed from REGISTERED or IN_PROGRESS.
+     * Transition: REGISTERED/IN_PROGRESS -> CANCELLED.
+     */
+    @Transactional
+    public InwardResponse cancelAr(Long id, ArLifecycleRequest request, Long qcHeadId) {
+        SampleInwardRegister entity = repository.findByIdAndStatus(id, RecordStatus.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("InwardRegistration", id));
+
+        ArStatus current = entity.getArStatusEnum();
+        if (current == null || (current != ArStatus.REGISTERED && current != ArStatus.IN_PROGRESS)) {
+            throw new BusinessRuleViolationException(
+                    "Cannot cancel AR: current status is '" + entity.getArStatus()
+                    + "'. AR must be in REGISTERED or IN_PROGRESS status to cancel.");
+        }
+
+        entity.setArStatusEnum(ArStatus.CANCELLED);
+        entity.setUpdatedBy(qcHeadId);
+        entity = repository.save(entity);
+
+        log.info("AR cancelled: id={}, arNumber={}, by={}, reason={}",
+                id, entity.getArNumber(), qcHeadId, request.getReason());
+        return toResponse(entity);
+    }
+
+    /**
+     * Recalculate and persist the test completion rate for an AR.
+     * Called by TestExecutionService after each test status change.
+     *
+     * Sets ar_status to:
+     *   IN_PROGRESS — if at least one test is non-terminal
+     *   ALL_TESTS_COMPLETE — if all tests are terminal
+     *   REGISTERED — if no tests allocated yet
+     */
+    @Transactional
+    public void updateTestCompletionAndStatus(String arNumber, long totalTests, long terminalTests) {
+        repository.findByArNumberAndStatus(arNumber, RecordStatus.ACTIVE).ifPresent(entity -> {
+            BigDecimal rate = BigDecimal.ZERO;
+            if (totalTests > 0) {
+                rate = terminalTests > totalTests
+                        ? new BigDecimal("100.00")
+                        : new BigDecimal(terminalTests)
+                                .multiply(new BigDecimal("100"))
+                                .divide(new BigDecimal(totalTests), 2, java.math.RoundingMode.HALF_UP);
+            }
+            entity.setTestCompletionRate(rate);
+
+            // Determine ar_status
+            ArStatus newStatus;
+            if (totalTests == 0) {
+                newStatus = ArStatus.REGISTERED;
+            } else if (terminalTests >= totalTests) {
+                newStatus = ArStatus.ALL_TESTS_COMPLETE;
+            } else {
+                newStatus = ArStatus.IN_PROGRESS;
+            }
+            entity.setArStatusEnum(newStatus);
+
+            repository.save(entity);
+            log.debug("AR status updated: arNumber={}, totalTests={}, terminalTests={}, rate={}, status={}",
+                    arNumber, totalTests, terminalTests, rate, newStatus);
+        });
     }
 
     // --- Entity population helper ---
