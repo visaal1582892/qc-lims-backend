@@ -20,6 +20,8 @@ import java.util.List;
  * All endpoints wrapped in ApiResponse<T> envelope.
  * Authorization via @PreAuthorize with Rights.java constants.
  * No business logic — delegates to TestParameterService.
+ *
+ * Security: C-4 — Uses Rights constant concatenation in @PreAuthorize.
  */
 @RestController
 @RequestMapping("/api/test-parameters")
@@ -31,7 +33,7 @@ public class TestParameterController {
     // --- READ ---
 
     @GetMapping
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TEST_PARAMETER_READ + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_READ + "')")
     public ResponseEntity<ApiResponse<List<TestParameterResponse>>> list(
             @RequestParam(required = false) Integer productId,
             @RequestParam(required = false) String search,
@@ -55,7 +57,7 @@ public class TestParameterController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TEST_PARAMETER_READ + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_READ + "')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(service.getById(id)));
     }
@@ -63,7 +65,7 @@ public class TestParameterController {
     // --- CREATE ---
 
     @PostMapping
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TEST_PARAMETER_CREATE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_CREATE + "')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> create(
             @Valid @RequestBody TestParameterRequest request) {
         TestParameterResponse response = service.create(request, null);
@@ -73,7 +75,7 @@ public class TestParameterController {
     // --- UPDATE ---
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TEST_PARAMETER_UPDATE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_UPDATE + "')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> update(
             @PathVariable Long id,
             @Valid @RequestBody TestParameterRequest request) {
@@ -84,7 +86,7 @@ public class TestParameterController {
     // --- DELETE ---
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('\" + Rights.ROLE_TEST_PARAMETER_DELETE + \"')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_DELETE + "')")
     public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Test parameter deleted successfully"));
