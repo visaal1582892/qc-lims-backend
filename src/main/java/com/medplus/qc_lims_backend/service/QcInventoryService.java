@@ -34,6 +34,9 @@ import java.util.Optional;
  * and SRS Module 5 (QC Inventory & Consumption Reconciliation).
  *
  * Review corrections applied:
+ *   H-2 [HIGH]: resolveUserId() replaces hardcoded getCurrentUserId().
+ *   H-1 [HIGH]: Added update() method for general inventory updates.
+ *   M-1 [MED]: updateTotalQuantity and update() validate total >= allocated.
  *   C-2 [HIGH]: Derives user ID from SecurityContextHolder, not from client.
  *   C-4 [HIGH]: manufacturer_id included in createInventory flow.
  */

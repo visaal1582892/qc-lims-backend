@@ -28,6 +28,11 @@ import java.util.List;
  *   Consumption: POST /api/inventory/{id}/consume
  *   Variance: GET /api/inventory/variance
  *   Barcode: GET /api/inventory/{id}/barcode, POST /api/inventory/{id}/barcode
+ *
+ * B-1 fix: @PreAuthorize corrected to match TrfController/InwardController pattern.
+ * H-1 fix: Added PUT /api/inventory/{id} general update endpoint.
+ * B-2 fix: Barcode POST no longer requires @Valid (productName is optional).
+ * B-3 fix: AllocateRequest no longer carries allocatedToAnalystId (deferred to Module 6).
  */
 @RestController
 @RequestMapping("/api/inventory")

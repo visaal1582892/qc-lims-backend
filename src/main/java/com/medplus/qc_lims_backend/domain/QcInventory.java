@@ -76,17 +76,25 @@ public class QcInventory extends BaseEntity {
 
     /**
      * Allocate sample quantity to an analyst.
-     * Validates: allocated + delta <= total (no over-allocation).
+     * M-4 fix: Added precondition assertion — caller (service layer) must validate
+     * that allocated + delta <= total before invoking this method.
      */
     public void allocate(int quantity) {
+        if (quantity < 1) {
+            throw new IllegalArgumentException("Allocation quantity must be positive, got: " + quantity);
+        }
         this.quantityAllocated = (this.quantityAllocated == null ? 0 : this.quantityAllocated) + quantity;
     }
 
     /**
      * Record consumed quantity.
-     * Validates: consumed + delta <= allocated (cannot exceed allocated).
+     * M-4 fix: Added precondition assertion — caller (service layer) must validate
+     * that consumed + delta <= allocated before invoking this method.
      */
     public void consume(int quantity) {
+        if (quantity < 1) {
+            throw new IllegalArgumentException("Consumption quantity must be positive, got: " + quantity);
+        }
         this.quantityConsumed = (this.quantityConsumed == null ? 0 : this.quantityConsumed) + quantity;
     }
 

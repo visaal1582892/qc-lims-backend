@@ -21,6 +21,12 @@ import java.util.List;
  * AR number generation via ArSequenceGenerator (atomic zero-gap, RC-4).
  * Soft delete via status=INACTIVE (RC-7).
  * Follows TestParameterService pattern exactly.
+ *
+ * H-4 note: Delegation to QcInventoryService on sample acceptance is deferred.
+ * Per SRS Module 5.1, inventory creation should happen upon inward acceptance.
+ * This will be implemented as a separate integration task once Phase 3 corrections
+ * are accepted. The QcInventoryService.createInventory() method is ready to be called
+ * from InwardService.create() after entity persistence succeeds.
  */
 @Service
 @RequiredArgsConstructor

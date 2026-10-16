@@ -43,10 +43,10 @@ ALTER TABLE qc_inventory
     ADD CONSTRAINT fk_inventory_inward
     FOREIGN KEY (ar_number) REFERENCES sample_inward_register(ar_number);
 
--- Indexes for query patterns
-CREATE INDEX idx_inventory_ar_number ON qc_inventory(ar_number);
-CREATE INDEX idx_inventory_product_id ON qc_inventory(product_id);
-CREATE INDEX idx_inventory_batch_no ON qc_inventory(batch_no);
-CREATE INDEX idx_inventory_storage_location ON qc_inventory(storage_location);
-CREATE INDEX idx_inventory_product_batch ON qc_inventory(product_id, batch_no);
-CREATE INDEX idx_inventory_manufacturer_id ON qc_inventory(manufacturer_id);
+-- Indexes for query patterns (IF NOT EXISTS for idempotency — L-4 fix)
+CREATE INDEX IF NOT EXISTS idx_inventory_ar_number ON qc_inventory(ar_number);
+CREATE INDEX IF NOT EXISTS idx_inventory_product_id ON qc_inventory(product_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_batch_no ON qc_inventory(batch_no);
+CREATE INDEX IF NOT EXISTS idx_inventory_storage_location ON qc_inventory(storage_location);
+CREATE INDEX IF NOT EXISTS idx_inventory_product_batch ON qc_inventory(product_id, batch_no);
+CREATE INDEX IF NOT EXISTS idx_inventory_manufacturer_id ON qc_inventory(manufacturer_id);
