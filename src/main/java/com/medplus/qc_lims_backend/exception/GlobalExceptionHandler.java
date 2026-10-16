@@ -73,6 +73,20 @@ public class GlobalExceptionHandler {
                 .body(new ApiErrorResponse("DUPLICATE_RESOURCE", "A record with this combination already exists."));
     }
 
+    @ExceptionHandler(org.springframework.orm.jpa.JpaSystemException.class)
+    public ResponseEntity<ApiErrorResponse> handleJpaSystem(org.springframework.orm.jpa.JpaSystemException ex) {
+        // Handle PessimisticLockingFailureException and other transient concurrency issues (RC-5)
+        String message = ex.getMessage();
+        if (message != null && (message.contains("PessimisticLockingFailure") || message.contains("lock timeout"))) {
+            log.warn("Pessimistic locking failure (concurrency conflict): {}", message);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiErrorResponse("CONFLICT", "Another operation is currently in progress. Please retry."));
+        }
+        log.error("JPA system exception", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiErrorResponse("INTERNAL_ERROR", "A database error occurred. Please try again later."));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex) {
         log.error("Unexpected error", ex);

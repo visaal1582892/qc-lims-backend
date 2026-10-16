@@ -22,4 +22,30 @@ public final class Rights {
     public static final String ROLE_TEST_PARAMETER_CREATE = "ROLE_TEST_PARAMETER_CREATE";
     public static final String ROLE_TEST_PARAMETER_UPDATE = "ROLE_TEST_PARAMETER_UPDATE";
     public static final String ROLE_TEST_PARAMETER_DELETE = "ROLE_TEST_PARAMETER_DELETE";
+
+    // Sample Inward Register (Phase 2) — SRS Module 2
+    public static final String ROLE_INWARD_VIEW   = "ROLE_INWARD_VIEW";
+    public static final String ROLE_INWARD_CREATE = "ROLE_INWARD_CREATE";
+    public static final String ROLE_INWARD_UPDATE = "ROLE_INWARD_UPDATE";
+    public static final String ROLE_INWARD_DELETE = "ROLE_INWARD_DELETE";
+
+    // e-TRF Management (Phase 2) — SRS Module 3
+    public static final String ROLE_TRF_VIEW             = "ROLE_TRF_VIEW";
+    public static final String ROLE_TRF_CREATE           = "ROLE_TRF_CREATE";
+    public static final String ROLE_TRF_UPDATE           = "ROLE_TRF_UPDATE";
+    public static final String ROLE_TRF_DELETE           = "ROLE_TRF_DELETE";
+    public static final String ROLE_TRF_ACCEPT           = "ROLE_TRF_ACCEPT";
+    public static final String ROLE_TRF_REJECT           = "ROLE_TRF_REJECT";
+    public static final String ROLE_TRF_ASSIGN_PARAMETERS = "ROLE_TRF_ASSIGN_PARAMETERS";
+
+    // Receipt Checklist (Phase 2) — SRS Module 3 (physical verification)
+    public static final String ROLE_RECEIPT_CHECKLIST_VIEW   = "ROLE_RECEIPT_CHECKLIST_VIEW";
+    public static final String ROLE_RECEIPT_CHECKLIST_CREATE = "ROLE_RECEIPT_CHECKLIST_CREATE";
+    public static final String ROLE_RECEIPT_CHECKLIST_UPDATE = "ROLE_RECEIPT_CHECKLIST_UPDATE";
+
+    // QC Dashboard (Phase 8) — SRS Module 12.1
+    public static final String ROLE_DASHBOARD_VIEW  = "ROLE_DASHBOARD_VIEW";
+
+    // Multi-Dimensional Analytics (Phase 8) — SRS Module 12.2
+    public static final String ROLE_ANALYTICS_VIEW  = "ROLE_ANALYTICS_VIEW";
 }
