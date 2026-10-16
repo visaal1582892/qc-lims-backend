@@ -2,6 +2,9 @@ package com.medplus.qc_lims_backend.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,9 +29,6 @@ import java.math.BigDecimal;
 @ToString(callSuper = true)
 public class TestParameterMaster extends BaseEntity {
 
-    @Column(name = "parameter_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @Column(nullable = false)
     private Integer productId;

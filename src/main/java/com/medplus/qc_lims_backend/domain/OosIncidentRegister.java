@@ -2,6 +2,9 @@ package com.medplus.qc_lims_backend.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,6 +35,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @ToString(callSuper = true)
 public class OosIncidentRegister extends BaseEntity {
+
 
     @Column(name = "incident_number", nullable = false, length = 100)
     private String incidentNumber;

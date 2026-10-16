@@ -16,7 +16,7 @@ CREATE TABLE sample_inward_register (
     ),
     is_subcontracted TINYINT(1) DEFAULT FALSE,
     subcontract_remarks TEXT,
-    receipt_date DATE DEFAULT CURRENT_DATE,
+    receipt_date DATE,
     -- BaseEntity columns (RC-3):
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

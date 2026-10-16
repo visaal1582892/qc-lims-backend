@@ -2,6 +2,9 @@ package com.medplus.qc_lims_backend.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,9 +32,6 @@ import java.time.LocalDate;
 @ToString(callSuper = true)
 public class SampleInwardRegister extends BaseEntity {
 
-    @Column(name = "inward_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @Column(name = "ar_number", unique = true, length = 50)
     private String arNumber;

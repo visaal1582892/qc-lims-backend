@@ -2,6 +2,9 @@ package com.medplus.qc_lims_backend.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,9 +32,6 @@ import java.time.LocalDate;
 @ToString(callSuper = true)
 public class QcInventory extends BaseEntity {
 
-    @Column(name = "inventory_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
     /** Override inherited createdBy column name to received_by_user_id */
     @Column(name = "received_by_user_id")

@@ -241,7 +241,7 @@ public class ReviewWorkflowService {
 
     private ReviewAuditLogResponse toAuditLogResponse(ReviewAuditLog log) {
         return new ReviewAuditLogResponse(
-                log.getLogId(),
+                log.getId(),
                 log.getExecutionId(),
                 log.getReviewStage(),
                 log.getReviewerId(),

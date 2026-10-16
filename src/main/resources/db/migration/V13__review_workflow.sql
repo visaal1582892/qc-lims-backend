@@ -74,16 +74,16 @@ CREATE TABLE IF NOT EXISTS review_audit_log (
 );
 
 -- 3. Indexes for review queue queries
-CREATE INDEX IF NOT EXISTS idx_test_exec_review_status
+CREATE INDEX idx_test_exec_review_status
     ON test_execution (review_status);
 
-CREATE INDEX IF NOT EXISTS idx_test_exec_exec_status
+CREATE INDEX idx_test_exec_exec_status
     ON test_execution (execution_status);
 
-CREATE INDEX IF NOT EXISTS idx_review_log_execution
+CREATE INDEX idx_review_log_execution
     ON review_audit_log (execution_id);
 
-CREATE INDEX IF NOT EXISTS idx_review_log_stage
+CREATE INDEX idx_review_log_stage
     ON review_audit_log (review_stage);
 
 -- ============================================================================

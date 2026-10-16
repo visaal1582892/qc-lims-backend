@@ -2,6 +2,9 @@ package com.medplus.qc_lims_backend.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -27,9 +30,6 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 public class TrfMaster extends BaseEntity {
 
-    @Column(name = "trf_id")
-    @EqualsAndHashCode.Include
-    private Long id;
 
     @Column(name = "grn_number", length = 100)
     private String grnNumber;

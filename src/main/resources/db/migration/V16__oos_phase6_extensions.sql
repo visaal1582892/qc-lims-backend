@@ -12,8 +12,7 @@
 -- 1. Extend final_disposition CHECK to include 'Retest_Passed' for tracking successful retest resolution
 SET @constraint_exists = (
     SELECT COUNT(*) FROM information_schema.CHECK_CONSTRAINTS
-    WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'oos_incident_register'
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
     AND CONSTRAINT_NAME = 'oos_incident_register_final_disposition_check'
 );
 SET @sql = IF(@constraint_exists > 0,
@@ -100,8 +99,8 @@ SET @sql = IF(@col_exists = 0, 'ALTER TABLE sample_inward_register ADD COLUMN li
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 5. Indexes for OOS query performance
-CREATE INDEX IF NOT EXISTS idx_oos_ar_number ON oos_incident_register(ar_number);
-CREATE INDEX IF NOT EXISTS idx_oos_disposition ON oos_incident_register(final_disposition);
+-- idx_oos_disposition already created in V9
+CREATE INDEX idx_oos_ar_number ON oos_incident_register(ar_number);
 
 -- 6. OOS sequence tracker table (for atomic OOS number generation)
 CREATE TABLE IF NOT EXISTS oos_sequence_tracker (
@@ -112,6 +111,6 @@ CREATE TABLE IF NOT EXISTS oos_sequence_tracker (
 INSERT INTO oos_sequence_tracker (calendar_year, last_sequence)
     VALUES (SUBSTRING(CAST(YEAR(CURRENT_DATE) AS CHAR), 3, 2), 0)
     ON DUPLICATE KEY UPDATE calendar_year = VALUES(calendar_year);
-CREATE INDEX IF NOT EXISTS idx_oos_status ON oos_incident_register(oos_status);
-CREATE INDEX IF NOT EXISTS idx_oos_product_batch ON oos_incident_register(product_id, batch_no);
-CREATE INDEX IF NOT EXISTS idx_sir_for_info_link ON sample_inward_register(linked_for_info_ar_number);
+CREATE INDEX idx_oos_status ON oos_incident_register(oos_status);
+CREATE INDEX idx_oos_product_batch ON oos_incident_register(product_id, batch_no);
+CREATE INDEX idx_sir_for_info_link ON sample_inward_register(linked_for_info_ar_number);

@@ -21,8 +21,7 @@
 -- Try multiple possible constraint names since DBs auto-generate them
 SET @constraint_exists = (
     SELECT COUNT(*) FROM information_schema.CHECK_CONSTRAINTS
-    WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'sample_inward_register'
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
     AND CONSTRAINT_NAME = 'chk_sample_inward_ar_status'
 );
 SET @sql = IF(@constraint_exists > 0,
@@ -35,8 +34,7 @@ DEALLOCATE PREPARE stmt;
 
 SET @constraint_exists = (
     SELECT COUNT(*) FROM information_schema.CHECK_CONSTRAINTS
-    WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'sample_inward_register'
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
     AND CONSTRAINT_NAME = 'sample_inward_register_ar_status_check'
 );
 SET @sql = IF(@constraint_exists > 0,
@@ -93,23 +91,21 @@ UPDATE sample_inward_register
 SET test_completion_rate = COALESCE(
     (
         SELECT ROUND(
-            CAST(SUM(CASE WHEN te.te_execution_status IN ('Released', 'Cancelled_Not_Performed') THEN 1 ELSE 0 END) AS DECIMAL)
+            CAST(SUM(CASE WHEN te.execution_status IN ('Released', 'Cancelled_Not_Performed') THEN 1 ELSE 0 END) AS DECIMAL)
             / NULLIF(CAST(COUNT(*) AS DECIMAL), 0) * 100,
             2
         )
         FROM test_execution te
-        WHERE te.te_sample_inward_id = sample_inward_register.id
+        WHERE te.ar_number = sample_inward_register.ar_number
           AND te.status = 'ACTIVE'
     ),
     0
 );
 
 -- 7. Indexes for common filter paths
+-- idx_sample_inward_ar_status already created in V9
 
-CREATE INDEX IF NOT EXISTS idx_sample_inward_ar_status
-    ON sample_inward_register (ar_status);
-
-CREATE INDEX IF NOT EXISTS idx_sample_inward_product_status
+CREATE INDEX idx_sample_inward_product_status
     ON sample_inward_register (product_id, ar_status);
 
 -- ============================================================================
