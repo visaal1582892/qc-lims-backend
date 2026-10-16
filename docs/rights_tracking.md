@@ -119,3 +119,24 @@ Whenever a new feature is developed, new rights must be added here.
 | ROLE_OOS_RETEST | Can authorize retest | QC_HEAD |
 | ROLE_BATCH_REJECT | Can reject batch | QC_HEAD, QA_MANAGER |
 | ROLE_OOS_VIEW | Can view OOS incident records | QC_ANALYST, QC_HEAD, QA_MANAGER |
+
+---
+
+*Last updated: 2026-10-16 (Phase 7 — Subcontracting + Document Management rights added)*
+
+---
+
+### Phase 7 — Subcontracting (Module 10)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_SUBCONTRACT_CREATE | Can create subcontract entries | QC_HEAD |
+| ROLE_SUBCONTRACT_VIEW | Can view subcontract records | QC_ANALYST, QC_HEAD |
+| ROLE_SUBCONTRACT_UPDATE | Can update subcontract remarks/status | QC_HEAD |
+
+### Phase 7 — Document Management (Module 11)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_DOCUMENT_UPLOAD | Can upload ROA/COA documents | QC_ANALYST, QC_HEAD |
+| ROLE_DOCUMENT_VIEW | Can view/download documents | QC_ANALYST, QC_HEAD, QA_MANAGER |

@@ -41,7 +41,8 @@ public class SubcontractingController {
     public ResponseEntity<ApiResponse<SubcontractResponse>> createSubcontract(
             @Valid @RequestBody CreateSubcontractRequest request) {
         SubcontractResponse response = subcontractingService.createSubcontract(request);
-        return ResponseEntity.ok(ApiResponse.ok(response));
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(ApiResponse.ok(response));
     }
 
     /**
