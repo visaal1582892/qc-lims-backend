@@ -40,7 +40,11 @@ CREATE TABLE IF NOT EXISTS document_registry (
     content_type    VARCHAR(100) DEFAULT 'application/pdf',
     uploaded_by     BIGINT,
     uploaded_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status          VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+    status          VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by      BIGINT,
+    updated_by      BIGINT
 );
 
 -- Indexes for document registry
