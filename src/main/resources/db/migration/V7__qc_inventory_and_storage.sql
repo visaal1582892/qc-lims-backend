@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS qc_inventory (
     exp_date DATE,
     received_by_user_id INT NOT NULL,
     -- BaseEntity audit columns (explicit per MEDIUM correction):
+    created_by BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     updated_by BIGINT,
