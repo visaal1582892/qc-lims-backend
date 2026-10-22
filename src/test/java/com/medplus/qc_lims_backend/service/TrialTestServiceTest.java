@@ -6,6 +6,7 @@ import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
+import com.medplus.qc_lims_backend.service.impl.TrialTestServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +42,7 @@ class TrialTestServiceTest {
     @Mock private SampleInwardRepository sampleInwardRepository;
     @Mock private ArSequenceGenerator arSequenceGenerator;
 
-    @InjectMocks private TrialTestService service;
+    @InjectMocks private TrialTestServiceImpl service;
 
     private SampleInwardRegister completedAr;
 

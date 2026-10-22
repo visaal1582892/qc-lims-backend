@@ -19,6 +19,7 @@ import com.medplus.qc_lims_backend.repository.QcInventoryRepository;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import com.medplus.qc_lims_backend.repository.TestExecutionRepository;
 import com.medplus.qc_lims_backend.repository.TestParameterMasterRepository;
+import com.medplus.qc_lims_backend.service.impl.TestExecutionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +67,7 @@ class TestExecutionServiceTest {
     @Mock private QcInventoryService qcInventoryService;
     @Mock private InwardService inwardService;
 
-    @InjectMocks private TestExecutionService service;
+    @InjectMocks private TestExecutionServiceImpl service;
 
     private SampleInwardRegister sampleInward;
     private TestParameterMaster testParameter;

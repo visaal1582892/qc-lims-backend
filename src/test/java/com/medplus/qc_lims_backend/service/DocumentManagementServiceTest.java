@@ -8,6 +8,7 @@ import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.DocumentRepository;
 import com.medplus.qc_lims_backend.repository.TestExecutionRepository;
+import com.medplus.qc_lims_backend.service.impl.DocumentManagementServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +53,7 @@ class DocumentManagementServiceTest {
 
     @Mock private DocumentRepository documentRepository;
     @Mock private TestExecutionRepository testExecutionRepository;
-    @InjectMocks private DocumentManagementService documentManagementService;
+    @InjectMocks private DocumentManagementServiceImpl documentManagementService;
 
     private Authentication mockAuth;
 

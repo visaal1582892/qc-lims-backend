@@ -9,6 +9,7 @@ import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import com.medplus.qc_lims_backend.service.ArSequenceGenerator;
+import com.medplus.qc_lims_backend.service.impl.InwardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,7 @@ class InwardServiceArLifecycleTest {
     @Mock private SampleInwardRepository repository;
     @Mock private ArSequenceGenerator arSequenceGenerator;
 
-    @InjectMocks private InwardService service;
+    @InjectMocks private InwardServiceImpl service;
 
     private SampleInwardRegister sampleInward;
 

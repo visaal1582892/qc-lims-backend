@@ -14,6 +14,7 @@ import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.OosIncidentRepository;
 import com.medplus.qc_lims_backend.repository.SampleInwardRepository;
 import com.medplus.qc_lims_backend.repository.TestExecutionRepository;
+import com.medplus.qc_lims_backend.service.impl.OosIncidentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,7 @@ class OosIncidentServiceTest {
     @Mock private TestExecutionRepository testExecutionRepository;
     @Mock private ArSequenceGenerator sequenceGenerator;
 
-    @InjectMocks private OosIncidentService oosIncidentService;
+    @InjectMocks private OosIncidentServiceImpl oosIncidentService;
 
     private OosIncidentRegister pendingIncident;
 

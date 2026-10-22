@@ -14,6 +14,7 @@ import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.ReviewAuditLogRepository;
 import com.medplus.qc_lims_backend.repository.TestExecutionRepository;
 import com.medplus.qc_lims_backend.repository.TestParameterMasterRepository;
+import com.medplus.qc_lims_backend.service.impl.ReviewWorkflowServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +59,7 @@ class ReviewWorkflowServiceTest {
     @Mock private ReviewAuditLogRepository auditLogRepository;
     @Mock private TestParameterMasterRepository parameterRepository;
 
-    @InjectMocks private ReviewWorkflowService service;
+    @InjectMocks private ReviewWorkflowServiceImpl service;
 
     private TestExecution execution;
 

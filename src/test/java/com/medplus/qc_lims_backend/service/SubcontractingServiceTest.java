@@ -11,6 +11,7 @@ import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
 import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.SubcontractRepository;
 import com.medplus.qc_lims_backend.repository.TrfRepository;
+import com.medplus.qc_lims_backend.service.impl.SubcontractingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,7 @@ class SubcontractingServiceTest {
 
     @Mock private SubcontractRepository subcontractRepository;
     @Mock private TrfRepository trfRepository;
-    @InjectMocks private SubcontractingService subcontractingService;
+    @InjectMocks private SubcontractingServiceImpl subcontractingService;
 
     private Authentication mockAuth;
 
