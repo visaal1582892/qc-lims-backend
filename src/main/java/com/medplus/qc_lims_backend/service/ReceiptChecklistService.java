@@ -10,6 +10,8 @@ import com.medplus.qc_lims_backend.exception.EntityNotFoundException;
 import com.medplus.qc_lims_backend.repository.ReceiptChecklistRepository;
 import com.medplus.qc_lims_backend.repository.TrfRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +40,7 @@ public class ReceiptChecklistService {
         checklistRepository.findByTrfIdAndStatus(request.getTrfId(), RecordStatus.ACTIVE)
                 .ifPresent(existing -> {
                     throw new BusinessRuleViolationException(
-                        "A receipt checklist already exists for TRF " + request.getTrfId() + ".");
+                            "A receipt checklist already exists for TRF " + request.getTrfId() + ".");
                 });
 
         TrfReceiptChecklist entity = new TrfReceiptChecklist();
@@ -76,5 +78,13 @@ public class ReceiptChecklistService {
         TrfReceiptChecklist entity = checklistRepository.findByTrfIdAndStatus(trfId, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("ReceiptChecklist for TRF", trfId));
         return ReceiptChecklistResponse.fromEntity(entity);
+    }
+
+    public Long resolveUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof Long) {
+            return (Long) auth.getPrincipal();
+        }
+        return null;
     }
 }

@@ -32,7 +32,7 @@ public class ReceiptChecklistController {
     @PostMapping
     public ResponseEntity<ApiResponse<ReceiptChecklistResponse>> create(
             @Valid @RequestBody ReceiptChecklistRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(checklistService.create(request, null)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(checklistService.create(request, checklistService.resolveUserId())));
     }
 
     @PreAuthorize("hasAuthority('" + Rights.ROLE_RECEIPT_CHECKLIST_UPDATE + "')")
@@ -40,6 +40,6 @@ public class ReceiptChecklistController {
     public ResponseEntity<ApiResponse<ReceiptChecklistResponse>> update(
             @PathVariable Long checklistId,
             @Valid @RequestBody ReceiptChecklistRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(checklistService.update(checklistId, request, null)));
+        return ResponseEntity.ok(ApiResponse.ok(checklistService.update(checklistId, request, checklistService.resolveUserId())));
     }
 }

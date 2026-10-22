@@ -2,6 +2,8 @@ package com.medplus.qc_lims_backend.controller;
 
 import com.medplus.qc_lims_backend.dto.request.AuthorizeRetestRequest;
 import com.medplus.qc_lims_backend.dto.request.CompleteRetestRequest;
+import com.medplus.qc_lims_backend.dto.request.OosInvestigationRequest;
+import com.medplus.qc_lims_backend.dto.request.RaiseOosIncidentRequest;
 import com.medplus.qc_lims_backend.dto.request.RejectBatchRequest;
 import com.medplus.qc_lims_backend.dto.response.ApiResponse;
 import com.medplus.qc_lims_backend.dto.response.OosIncidentResponse;
@@ -94,5 +96,24 @@ public class OosIncidentController {
             @PathVariable String arNumber) {
         return ResponseEntity.ok(ApiResponse.ok(
                 oosIncidentService.getIncidentsByAr(arNumber)));
+    }
+
+    // OIS-07: Manually raise an OOS incident
+    @PostMapping("/raise")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_OOS_RAISE + "')")
+    public ResponseEntity<ApiResponse<OosIncidentResponse>> raiseOosIncident(
+            @Valid @RequestBody RaiseOosIncidentRequest request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(ApiResponse.ok(oosIncidentService.raiseOosIncident(request)));
+    }
+
+    // OIS-08: Submit investigation findings
+    @PostMapping("/{id}/investigate")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_OOS_RAISE + "')")
+    public ResponseEntity<ApiResponse<OosIncidentResponse>> investigate(
+            @PathVariable Long id,
+            @Valid @RequestBody OosInvestigationRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                oosIncidentService.investigate(id, request)));
     }
 }

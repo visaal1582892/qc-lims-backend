@@ -59,4 +59,15 @@ public class TrialTestController {
         var inward = trialTestService.getForInfoAr(arNumber);
         return ResponseEntity.ok(ApiResponse.ok(InwardResponse.fromEntity(inward)));
     }
+
+    /**
+     * TT-04: List all For_Information ARs.
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_OOS_VIEW + "')")
+    public ResponseEntity<ApiResponse<java.util.List<InwardResponse>>> listForInfoArs() {
+        var ars = trialTestService.listForInfoArs();
+        return ResponseEntity.ok(ApiResponse.ok(
+                ars.stream().map(InwardResponse::fromEntity).collect(java.util.stream.Collectors.toList())));
+    }
 }

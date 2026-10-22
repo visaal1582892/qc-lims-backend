@@ -74,4 +74,13 @@ public class ReviewWorkflowController {
             @PathVariable Long executionId) {
         return ResponseEntity.ok(ApiResponse.ok(service.getReviewHistory(executionId)));
     }
+
+    // --- Audit Log (all review actions) ---
+
+    @GetMapping("/audit-log")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_REVIEW_HISTORY_VIEW + "')")
+    public ResponseEntity<ApiResponse<List<ReviewAuditLogResponse>>> getAuditLog() {
+        // Aggregate all review audit log entries
+        return ResponseEntity.ok(ApiResponse.ok(service.getAuditLog()));
+    }
 }

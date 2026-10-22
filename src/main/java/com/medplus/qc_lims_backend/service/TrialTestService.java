@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Trial Test and For Information service (SRS Module 9).
@@ -131,6 +132,14 @@ public class TrialTestService {
         return sampleInwardRepository
                 .findByArNumberAndStatus(arNumber, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("SampleInwardRegister", arNumber));
+    }
+
+    /**
+     * List all ARs currently in FOR_INFORMATION status.
+     */
+    @Transactional(readOnly = true)
+    public List<SampleInwardRegister> listForInfoArs() {
+        return sampleInwardRepository.findByArStatus(ArStatus.FOR_INFORMATION.getDbValue());
     }
 
     // ========================================================================

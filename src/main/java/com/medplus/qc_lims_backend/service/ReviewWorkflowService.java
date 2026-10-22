@@ -219,6 +219,16 @@ public class ReviewWorkflowService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get all audit log entries (across all executions) — for global audit trail view.
+     */
+    public List<ReviewAuditLogResponse> getAuditLog() {
+        List<ReviewAuditLog> logs = auditLogRepository.findAllByStatusOrderByExecutedAtDesc(RecordStatus.ACTIVE);
+        return logs.stream()
+                .map(this::toAuditLogResponse)
+                .collect(Collectors.toList());
+    }
+
     // --- Private helpers ---
 
     private TestExecution loadActive(Long id) {

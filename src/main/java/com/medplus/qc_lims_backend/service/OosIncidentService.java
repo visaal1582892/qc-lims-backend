@@ -5,6 +5,8 @@ import com.medplus.qc_lims_backend.domain.SampleInwardRegister;
 import com.medplus.qc_lims_backend.domain.TestExecution;
 import com.medplus.qc_lims_backend.dto.request.AuthorizeRetestRequest;
 import com.medplus.qc_lims_backend.dto.request.CompleteRetestRequest;
+import com.medplus.qc_lims_backend.dto.request.OosInvestigationRequest;
+import com.medplus.qc_lims_backend.dto.request.RaiseOosIncidentRequest;
 import com.medplus.qc_lims_backend.dto.request.RejectBatchRequest;
 import com.medplus.qc_lims_backend.dto.response.OosIncidentResponse;
 import com.medplus.qc_lims_backend.enums.ArStatus;
@@ -281,6 +283,89 @@ public class OosIncidentService {
                 .stream()
                 .map(OosIncidentResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    // ========================================================================
+    // OIS-07: Manually raise an OOS incident
+    // ========================================================================
+
+    @Transactional
+    public OosIncidentResponse raiseOosIncident(RaiseOosIncidentRequest request) {
+        // Validate execution exists
+        TestExecution execution = testExecutionRepository
+                .findByIdAndStatus(Long.valueOf(request.getExecutionId()), RecordStatus.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("TestExecution", request.getExecutionId()));
+
+        // Check for duplicate: active incident already exists for this execution
+        List<OosIncidentRegister> existing = oosIncidentRepository
+                .findByExecutionIdAndStatus(request.getExecutionId(), RecordStatus.ACTIVE);
+        if (!existing.isEmpty()) {
+            throw new BusinessRuleViolationException(
+                    "OOS incident already exists for execution ID " + request.getExecutionId());
+        }
+
+        OosIncidentRegister incident = new OosIncidentRegister();
+        incident.setIncidentNumber(sequenceGenerator.generateOosNumber());
+        incident.setArNumber(request.getArNumber());
+        incident.setExecutionId(request.getExecutionId());
+        incident.setProductId(request.getProductId());
+        incident.setProductName(request.getProductName());
+        incident.setBatchNo(request.getBatchNo());
+        incident.setTestCode(request.getTestCode());
+        incident.setSpecificationReference(request.getSpecificationReference());
+        incident.setObservedValue(request.getObservedValue());
+        incident.setUnitOfMeasurement(request.getUnitOfMeasurement());
+        incident.setTestMethodName(request.getTestMethodName());
+        incident.setDeviationDescription(request.getDeviationDescription() != null
+                ? request.getDeviationDescription() : "Manually raised OOS");
+        incident.setOosStatus("Pending");
+        incident.setFinalDisposition("Pending");
+        incident.setRetestAttemptCount(1);
+        incident.setRaisedByUserId(request.getExecutionId()); // Use execution's analyst
+        incident.setStatus(RecordStatus.ACTIVE);
+        incident.setCreatedBy(resolveUserId());
+        incident.setUpdatedBy(resolveUserId());
+
+        OosIncidentRegister saved = oosIncidentRepository.save(incident);
+
+        log.info("OOS incident manually raised: {}, AR: {}, execution: {}",
+                saved.getIncidentNumber(), incident.getArNumber(), request.getExecutionId());
+
+        return OosIncidentResponse.fromEntity(saved);
+    }
+
+    // ========================================================================
+    // OIS-08: Submit investigation findings
+    // ========================================================================
+
+    @Transactional
+    public OosIncidentResponse investigate(Long incidentId, OosInvestigationRequest request) {
+        OosIncidentRegister incident = oosIncidentRepository
+                .findByIdAndStatus(incidentId, RecordStatus.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("OosIncidentRegister", incidentId));
+
+        if (!"Pending".equals(incident.getFinalDisposition())
+                && !"Retest_Authorized".equals(incident.getFinalDisposition())) {
+            throw new BusinessRuleViolationException(
+                    "Cannot investigate: incident disposition is " + incident.getFinalDisposition());
+        }
+
+        if (request.getInvestigationSummary() != null) {
+            incident.setInvestigationSummary(request.getInvestigationSummary());
+        }
+        if (request.getRootCause() != null) {
+            incident.setRootCause(request.getRootCause());
+        }
+        if (request.getCorrectiveAction() != null) {
+            incident.setCorrectiveAction(request.getCorrectiveAction());
+        }
+        incident.setUpdatedBy(resolveUserId());
+
+        OosIncidentRegister saved = oosIncidentRepository.save(incident);
+
+        log.info("OOS investigation submitted: {}", saved.getIncidentNumber());
+
+        return OosIncidentResponse.fromEntity(saved);
     }
 
     // ========================================================================

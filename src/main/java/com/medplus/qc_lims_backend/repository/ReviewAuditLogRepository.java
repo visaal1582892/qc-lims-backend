@@ -16,4 +16,9 @@ public interface ReviewAuditLogRepository extends JpaRepository<ReviewAuditLog, 
      * Find all audit log entries for a given execution, ordered chronologically.
      */
     List<ReviewAuditLog> findByExecutionIdOrderByExecutedAtAsc(Long executionId);
+
+    /**
+     * Find all audit log entries by status, ordered by executed_at descending.
+     */
+    List<ReviewAuditLog> findAllByStatusOrderByExecutedAtDesc(com.medplus.qc_lims_backend.enums.RecordStatus status);
 }
