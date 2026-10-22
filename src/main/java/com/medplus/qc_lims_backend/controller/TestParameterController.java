@@ -1,6 +1,7 @@
 package com.medplus.qc_lims_backend.controller;
 
 import com.medplus.qc_lims_backend.dto.request.TestParameterRequest;
+import com.medplus.qc_lims_backend.dto.request.TestParameterUpdateRequest;
 import com.medplus.qc_lims_backend.dto.response.ApiResponse;
 import com.medplus.qc_lims_backend.dto.response.TestParameterResponse;
 import com.medplus.qc_lims_backend.security.Rights;
@@ -78,7 +79,7 @@ public class TestParameterController {
     @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_UPDATE + "')")
     public ResponseEntity<ApiResponse<TestParameterResponse>> update(
             @PathVariable Long id,
-            @Valid @RequestBody TestParameterRequest request) {
+            @RequestBody TestParameterUpdateRequest request) {
         TestParameterResponse response = service.update(id, request, null);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

@@ -82,7 +82,7 @@ public class TrfService {
         populateEntity(entity, request);
         entity.setCreatedBy(createdBy);
         // B-1 fix: submittedByUserId from service-layer context, not client input
-        entity.setSubmittedByUserId(createdBy != null ? createdBy.intValue() : null);
+        entity.setSubmittedByUserId(createdBy != null ? createdBy.intValue() : 1);
         entity.setStatus(RecordStatus.ACTIVE);
         entity.setTrfStatus("Pending_Feasibility");
         entity.setSubmittedAt(LocalDateTime.now());

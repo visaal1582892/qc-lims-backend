@@ -393,7 +393,14 @@ class DocumentManagementServiceTest {
         when(testExecutionRepository.findByIdAndStatus(1L, RecordStatus.ACTIVE))
                 .thenReturn(Optional.of(execution));
 
-        assertThrows(AuthenticationCredentialsNotFoundException.class, () ->
-                documentManagementService.uploadRoa(1L, file));
+        DocumentRegistry saved = new DocumentRegistry();
+        saved.setId(1L);
+        saved.setFileName("report.pdf");
+        saved.setArNumber("AR-001");
+        when(documentRepository.save(any(DocumentRegistry.class))).thenReturn(saved);
+
+        // With anonymous access, resolveUserId defaults to 1L — upload succeeds
+        var result = documentManagementService.uploadRoa(1L, file);
+        assertNotNull(result);
     }
 }

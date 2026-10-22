@@ -30,7 +30,7 @@ class SubcontractingControllerTest {
 
     private SubcontractResponse makeResponse() {
         return new SubcontractResponse(
-                1L, "SC-20261016-ABC", 1,
+                1L, "SC-20261016-ABC", "TRF-001",
                 "AR-001", "External Lab", "Equipment breakdown",
                 LocalDate.now(), 1L, null, "DISPATCHED", "remark", false,
                 Instant.now(), Instant.now());
@@ -109,7 +109,7 @@ class SubcontractingControllerTest {
     @Test
     void markRoaReceivedReturns200() {
         SubcontractResponse roaResponse = new SubcontractResponse(
-                1L, "SC-20261016-ABC", 1,
+                1L, "SC-20261016-ABC", "TRF-001",
                 "AR-001", "External Lab", "Equipment breakdown",
                 LocalDate.now(), 1L, null, "COMPLETED", "remark", true,
                 Instant.now(), Instant.now());

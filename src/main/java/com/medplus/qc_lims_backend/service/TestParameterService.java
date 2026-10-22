@@ -2,6 +2,7 @@ package com.medplus.qc_lims_backend.service;
 
 import com.medplus.qc_lims_backend.domain.TestParameterMaster;
 import com.medplus.qc_lims_backend.dto.request.TestParameterRequest;
+import com.medplus.qc_lims_backend.dto.request.TestParameterUpdateRequest;
 import com.medplus.qc_lims_backend.dto.response.TestParameterResponse;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BusinessRuleViolationException;
@@ -108,24 +109,42 @@ public class TestParameterService {
         return toResponse(entity);
     }
 
-    // --- UPDATE (mutating) ---
+    // --- UPDATE (mutating) — Partial update with optional fields ---
 
     @Transactional
-    public TestParameterResponse update(Long id, TestParameterRequest request, Long updatedBy) {
+    public TestParameterResponse update(Long id, TestParameterUpdateRequest request, Long updatedBy) {
         TestParameterMaster entity = repository.findByIdAndStatus(id, RecordStatus.ACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("TestParameter", id));
 
-        validateBusinessRules(request);
-
-        // Check duplicate with different id
-        if (repository.existsByProductIdAndParameterNameAndIdNotAndStatus(
-                request.getProductId(), request.getParameterName(), id, RecordStatus.ACTIVE)) {
-            throw new DuplicateResourceException(
-                    "Test parameter with product ID " + request.getProductId()
-                            + " and name '" + request.getParameterName() + "' already exists.");
+        // Only validate business rules if limits are actually being changed
+        if (request.getMinLimit() != null && request.getMaxLimit() != null) {
+            if (request.getMinLimit().compareTo(request.getMaxLimit()) >= 0) {
+                throw new BusinessRuleViolationException(
+                        "Min limit (" + request.getMinLimit()
+                        + ") must be less than max limit (" + request.getMaxLimit() + ").");
+            }
         }
 
-        populateEntity(entity, request);
+        // Check duplicate only if both productId and parameterName are being set
+        if (request.getProductId() != null && request.getParameterName() != null) {
+            if (repository.existsByProductIdAndParameterNameAndIdNotAndStatus(
+                    request.getProductId(), request.getParameterName(), id, RecordStatus.ACTIVE)) {
+                throw new DuplicateResourceException(
+                        "Test parameter with product ID " + request.getProductId()
+                                + " and name '" + request.getParameterName() + "' already exists.");
+            }
+        }
+
+        // Apply partial update — only set non-null fields
+        if (request.getProductId() != null) entity.setProductId(request.getProductId());
+        if (request.getParameterName() != null) entity.setParameterName(request.getParameterName());
+        if (request.getStandardReference() != null) entity.setStandardReference(request.getStandardReference());
+        if (request.getStpDocumentNumber() != null) entity.setStpDocumentNumber(request.getStpDocumentNumber());
+        if (request.getStpVersionNumber() != null) entity.setStpVersionNumber(request.getStpVersionNumber());
+        if (request.getMinLimit() != null) entity.setMinLimit(request.getMinLimit());
+        if (request.getMaxLimit() != null) entity.setMaxLimit(request.getMaxLimit());
+        if (request.getTextSpecification() != null) entity.setTextSpecification(request.getTextSpecification());
+        if (request.getIsCritical() != null) entity.setIsCritical(request.getIsCritical());
         entity.setUpdatedBy(updatedBy);
 
         try {
