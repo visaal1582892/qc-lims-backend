@@ -15,7 +15,7 @@ INSERT INTO `rights` (`right_id`, `right_name`, `description`, `status`) VALUES
 -- ---------------------------
 
 INSERT INTO `roles` (`role_code`, `role_name`, `description`, `status`) VALUES
-('ADMIN', 'Admin', 'System administrator role');
+('ADMIN', 'Admin', 'System administrator role', 'ACTIVE');
 
 -- ---------------------------
 -- 3. Role-Right mapping
