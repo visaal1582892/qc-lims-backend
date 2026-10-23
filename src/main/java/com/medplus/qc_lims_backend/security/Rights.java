@@ -33,4 +33,20 @@ public final class Rights {
     public static final String ROLE_MASTER_DATA_CREATE = "ROLE_MASTER_DATA_CREATE";
     public static final String ROLE_MASTER_DATA_UPDATE = "ROLE_MASTER_DATA_UPDATE";
     public static final String ROLE_MASTER_DATA_DELETE = "ROLE_MASTER_DATA_DELETE";
+
+    // --- Metric Unit Master ---
+    public static final String ROLE_METRIC_UNIT_READ   = "ROLE_METRIC_UNIT_READ";
+    public static final String ROLE_METRIC_UNIT_UPLOAD = "ROLE_METRIC_UNIT_UPLOAD";
+
+    // --- Test Parameter Master ---
+    public static final String ROLE_TEST_PARAMETER_READ   = "ROLE_TEST_PARAMETER_READ";
+    public static final String ROLE_TEST_PARAMETER_UPLOAD = "ROLE_TEST_PARAMETER_UPLOAD";
+
+    // --- Analyst Qualification Master ---
+    public static final String ROLE_QUALIFICATION_READ   = "ROLE_QUALIFICATION_READ";
+    public static final String ROLE_QUALIFICATION_UPLOAD = "ROLE_QUALIFICATION_UPLOAD";
+
+    // --- QC Inventory Configuration ---
+    public static final String ROLE_INVENTORY_CONFIG_READ   = "ROLE_INVENTORY_CONFIG_READ";
+    public static final String ROLE_INVENTORY_CONFIG_UPLOAD = "ROLE_INVENTORY_CONFIG_UPLOAD";
 }

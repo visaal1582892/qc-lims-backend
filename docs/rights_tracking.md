@@ -19,7 +19,18 @@ Whenever a new feature is developed, new rights must be added here.
 
 ---
 
-### Phase 1 — Test Parameters
+### Phase 2 — Master Data (Masters & Bulk Upload)
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_METRIC_UNIT_READ | View metric units | ADMIN, QC_HEAD, QC_ANALYST |
+| ROLE_METRIC_UNIT_UPLOAD | Bulk upload metric units via Excel | ADMIN, QC_HEAD |
+| ROLE_TEST_PARAMETER_READ | View test parameters | ADMIN, QC_HEAD, QC_ANALYST |
+| ROLE_TEST_PARAMETER_UPLOAD | Bulk upload test parameters via Excel | ADMIN, QC_HEAD |
+| ROLE_QUALIFICATION_READ | View analyst qualifications | ADMIN, QC_HEAD |
+| ROLE_QUALIFICATION_UPLOAD | Bulk upload analyst qualifications | ADMIN, QC_HEAD |
+| ROLE_INVENTORY_CONFIG_READ | View inventory configurations | ADMIN, QC_HEAD |
+| ROLE_INVENTORY_CONFIG_UPLOAD | Bulk upload inventory configurations | ADMIN, QC_HEAD |
 | ROLE_TEST_PARAMETER_CREATE | Can create new test parameters | QC_HEAD |
 | ROLE_TEST_PARAMETER_UPDATE | Can edit existing test parameters | QC_HEAD |
 | ROLE_TEST_PARAMETER_DELETE | Can soft-delete test parameters | QC_HEAD, ADMIN |

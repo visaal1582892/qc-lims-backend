@@ -104,6 +104,7 @@ public class SecurityConfig {
                             .hasAuthority(Rights.ROLE_MASTER_DATA_UPDATE)
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/master/**")
                             .hasAuthority(Rights.ROLE_MASTER_DATA_DELETE)
+                        .requestMatchers("/api/masters/**").authenticated()
                         .requestMatchers("/api/admin/**").hasAnyAuthority(
                                 Rights.ROLE_USER_CREATE, Rights.ROLE_USER_READ, Rights.ROLE_USER_UPDATE,
                                 Rights.ROLE_ROLE_CREATE, Rights.ROLE_ROLE_READ, Rights.ROLE_ROLE_UPDATE)
