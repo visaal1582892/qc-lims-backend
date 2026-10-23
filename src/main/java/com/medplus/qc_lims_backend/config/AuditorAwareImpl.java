@@ -14,18 +14,20 @@ import java.util.Optional;
  * Resolves the current auditor (employee_id) for JPA @CreatedBy / @LastModifiedBy.
  */
 @Configuration
-public class AuditorAwareImpl implements AuditorAware<String> {
+public class AuditorAwareImpl {
 
-    @Override
-    public Optional<String> getCurrentAuditor() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+    @Bean("auditorAware")
+    public AuditorAware<String> auditorAware() {
+        return () -> {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+                return Optional.of("SYSTEM");
+            }
+            Object principal = auth.getPrincipal();
+            if (principal instanceof CustomUserDetails cud) {
+                return Optional.ofNullable(cud.getUser().getEmployeeId());
+            }
             return Optional.of("SYSTEM");
-        }
-        Object principal = auth.getPrincipal();
-        if (principal instanceof CustomUserDetails cud) {
-            return Optional.ofNullable(cud.getUser().getEmployeeId());
-        }
-        return Optional.of("SYSTEM");
+        };
     }
 }
