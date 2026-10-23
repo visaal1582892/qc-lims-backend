@@ -11,4 +11,4 @@ public record InventoryConfigurationBulkRow(
         Long parameterId,
         Integer countNeeded,
         int rowNumber
-) {}
+) implements BulkRow {}

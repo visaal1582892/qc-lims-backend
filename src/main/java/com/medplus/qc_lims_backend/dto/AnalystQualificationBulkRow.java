@@ -11,4 +11,4 @@ public record AnalystQualificationBulkRow(
         Long parameterId,
         String qualifiedOn,
         int rowNumber
-) {}
+) implements BulkRow {}

@@ -11,4 +11,4 @@ public record TestParameterBulkRow(
         String resultType,
         Long metricUnitId,
         int rowNumber
-) {}
+) implements BulkRow {}

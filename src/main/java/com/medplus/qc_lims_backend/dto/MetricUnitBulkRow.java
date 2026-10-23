@@ -10,4 +10,4 @@ public record MetricUnitBulkRow(
         String name,
         String subName,
         int rowNumber
-) {}
+) implements BulkRow {}

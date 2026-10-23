@@ -1,11 +1,15 @@
 package com.medplus.qc_lims_backend.dto;
 
 /**
- * Generic Excel bulk-upload row — goal.md §3.
- * Every master row contains: Action (A/U/D), ID, rowNumber (for error tracking).
+ * Marker interface for Excel bulk-upload row DTOs.
+ * Every master row exposes: Action (A/U/D), ID, rowNumber (for error tracking).
+ * Implemented by domain-specific BulkRow records.
  */
-public record BulkRow(
-        Long id,
-        String action,
-        int rowNumber
-) {}
+public interface BulkRow {
+
+    Long id();
+
+    String action();
+
+    int rowNumber();
+}
