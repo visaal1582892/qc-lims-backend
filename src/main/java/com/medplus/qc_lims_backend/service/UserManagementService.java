@@ -5,7 +5,6 @@ import com.medplus.qc_lims_backend.domain.Role;
 import com.medplus.qc_lims_backend.domain.User;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.exception.BadRequestException;
-import com.medplus.qc_lims_backend.exception.ConflictException;
 import com.medplus.qc_lims_backend.exception.ResourceNotFoundException;
 import com.medplus.qc_lims_backend.repository.RightRepository;
 import com.medplus.qc_lims_backend.repository.RoleRepository;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -62,7 +60,7 @@ public class UserManagementService {
 
         Long newId = userRepository.create(user);
         user.setUserId(newId);
-        log.info("Created user {} (id={})", user.getEmail(), newId);
+        log.info("Created user {} (id={})", user.getEmployeeId(), newId);
         return userRepository.findById(newId).orElse(user);
     }
 
@@ -115,11 +113,11 @@ public class UserManagementService {
         roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
 
-        jdbc.update("DELETE FROM role_rights_mapping WHERE role_id = :rid",
+        jdbc.update("DELETE FROM role_rights WHERE role_id = :rid",
                 new MapSqlParameterSource("rid", roleId));
         if (rightIds != null) {
             for (String rightId : rightIds) {
-                jdbc.update("INSERT INTO role_rights_mapping (role_id, right_id) VALUES (:rid, :rightId)",
+                jdbc.update("INSERT INTO role_rights (role_id, right_id) VALUES (:rid, :rightId)",
                         new MapSqlParameterSource("rid", roleId).addValue("rightId", rightId));
             }
         }

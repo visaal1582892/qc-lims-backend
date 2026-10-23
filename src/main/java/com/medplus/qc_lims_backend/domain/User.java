@@ -16,17 +16,17 @@ import java.util.List;
 @AllArgsConstructor
 public class User {
     private Long          userId;
+    private String        employeeId;
     private String        fullName;
-    private String        email;
     private String        passwordHash;
-    private String        departmentId;
-    private String        departmentName;
-    private String        designationId;
+    private RecordStatus  status;
+    private LocalDateTime createdAt;
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class UserRole {
-        private Long   id;
+        private Long   roleId;
         private String roleCode;
         private String roleName;
     }
@@ -36,16 +36,9 @@ public class User {
     @Builder.Default
     private List<String>  roleNames = Collections.emptyList();
     @Builder.Default
-    private List<UserRole> roles = Collections.emptyList();
+    private List<UserRole> roles    = Collections.emptyList();
     @Builder.Default
     private List<String>  rightNames = Collections.emptyList();
-    @Builder.Default
-    private List<String>  capabilityIds = Collections.emptyList();
-    @Builder.Default
-    private List<String>  capabilityNames = Collections.emptyList();
-    private Integer       currentActiveTasks;
-    private RecordStatus  status;
-    private LocalDateTime createdAt;
 
     public String getPrimaryRoleId() {
         return (roleIds != null && !roleIds.isEmpty()) ? roleIds.get(0) : null;
@@ -55,9 +48,9 @@ public class User {
         return (roleNames != null && !roleNames.isEmpty()) ? roleNames.get(0) : null;
     }
 
-    public boolean hasRole(String logicalRoleName) {
-        if (roleNames == null || logicalRoleName == null) return false;
-        return roleNames.stream().anyMatch(name -> name.equalsIgnoreCase(logicalRoleName));
+    public boolean hasRole(String roleName) {
+        if (roleNames == null || roleName == null) return false;
+        return roleNames.stream().anyMatch(n -> n.equalsIgnoreCase(roleName));
     }
 
     public boolean hasAuthority(String authority) {

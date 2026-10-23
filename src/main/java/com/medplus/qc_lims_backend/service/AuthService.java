@@ -32,42 +32,41 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest req) {
-        log.info("LOGIN attempt | email={}", req.getEmail());
+        log.info("LOGIN attempt | employeeId={}", req.getEmployeeId());
 
-        User user = userRepository.findByEmail(req.getEmail())
+        User user = userRepository.findByEmployeeId(req.getEmployeeId())
                 .orElseThrow(() -> {
-                    log.warn("LOGIN failed — no account | email={}", req.getEmail());
-                    return new BadCredentialsException("Invalid email or password");
+                    log.warn("LOGIN failed — no account | employeeId={}", req.getEmployeeId());
+                    return new BadCredentialsException("Invalid employee ID or password");
                 });
 
         if (RecordStatus.ACTIVE != user.getStatus()) {
-            log.warn("LOGIN failed — account disabled | email={}", req.getEmail());
+            log.warn("LOGIN failed — account disabled | employeeId={}", req.getEmployeeId());
             throw new BadCredentialsException("Account is disabled");
         }
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
-            log.warn("LOGIN failed — wrong password | email={}", req.getEmail());
-            throw new BadCredentialsException("Invalid email or password");
+            log.warn("LOGIN failed — wrong password | employeeId={}", req.getEmployeeId());
+            throw new BadCredentialsException("Invalid employee ID or password");
         }
 
         String token = tokenProvider.generateToken(
-                user.getUserId(), user.getEmail(), user.getRoleNames(), user.getRightNames(),
-                user.getDepartmentName(), user.getDepartmentId(), user.getFullName());
+                user.getUserId(),
+                user.getEmployeeId(),
+                user.getRoleNames(),
+                user.getRightNames(),
+                user.getFullName());
 
-        log.info("LOGIN success | email={} userId={} roles={} rights={}",
-                user.getEmail(), user.getUserId(), user.getRoleNames(), user.getRightNames());
+        log.info("LOGIN success | employeeId={} userId={} roles={} rights={}",
+                user.getEmployeeId(), user.getUserId(), user.getRoleNames(), user.getRightNames());
 
         LoginResponse.UserSummary summary = LoginResponse.UserSummary.builder()
                 .id(user.getUserId())
+                .employeeId(user.getEmployeeId())
                 .fullName(user.getFullName())
-                .email(user.getEmail())
                 .role(user.getPrimaryRoleName())
                 .roles(user.getRoleNames())
                 .roleIds(user.getRoleIds())
                 .rights(user.getRightNames())
-                .departmentId(user.getDepartmentId())
-                .department(user.getDepartmentName())
-                .designationId(user.getDesignationId() != null ? user.getDesignationId() : "")
-                .designation("")
                 .build();
 
         return LoginResponse.builder()

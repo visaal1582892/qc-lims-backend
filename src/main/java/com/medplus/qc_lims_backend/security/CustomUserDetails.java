@@ -12,6 +12,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Spring Security UserDetails implementation.
+ * Authorities are derived from user's rights (rights-based access control).
+ */
 @Getter
 public class CustomUserDetails implements UserDetails {
 
@@ -39,7 +43,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return user.getEmployeeId();
     }
 
     @Override

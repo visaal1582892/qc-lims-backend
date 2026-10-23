@@ -28,21 +28,18 @@ public class AdminController {
     // ============ Users ============
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('USER_READ')")
+    @PreAuthorize("hasAuthority('ROLE_USER_READ')")
     public ResponseEntity<List<User>> getUsers(@RequestParam(defaultValue = "false") boolean includeInactive) {
         return ResponseEntity.ok(userManagementService.findAll(includeInactive));
     }
 
     @PostMapping("/users")
-    @PreAuthorize("hasAuthority('USER_CREATE')")
+    @PreAuthorize("hasAuthority('ROLE_USER_CREATE')")
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
         User user = User.builder()
+                .employeeId(request.getEmployeeId())
                 .fullName(request.getFullName())
-                .email(request.getEmail())
                 .passwordHash(request.getPassword())
-                .departmentId(request.getDepartmentId())
-                .departmentName(request.getDepartmentName())
-                .designationId(request.getDesignationId())
                 .build();
         User created = userManagementService.create(user);
 
@@ -56,15 +53,12 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
     public ResponseEntity<Void> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         User user = User.builder()
                 .userId(id)
                 .fullName(request.getFullName())
-                .email(request.getEmail())
-                .departmentId(request.getDepartmentId())
-                .departmentName(request.getDepartmentName())
-                .designationId(request.getDesignationId())
+                .employeeId(request.getEmployeeId())
                 .status(request.getStatus())
                 .build();
         userManagementService.update(user);
@@ -72,14 +66,14 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/roles")
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
     public ResponseEntity<Void> assignRoles(@PathVariable Long id, @RequestBody Map<String, List<Long>> body) {
         userManagementService.assignRoles(id, body.get("roleIds"));
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/users/{id}/status")
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         userManagementService.updateStatus(id, RecordStatus.valueOf(body.get("status")));
         return ResponseEntity.noContent().build();
@@ -88,13 +82,13 @@ public class AdminController {
     // ============ Roles ============
 
     @GetMapping("/roles")
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @PreAuthorize("hasAuthority('ROLE_ROLE_READ')")
     public ResponseEntity<List<Role>> getRoles(@RequestParam(defaultValue = "false") boolean includeInactive) {
         return ResponseEntity.ok(userManagementService.findAllRoles(includeInactive));
     }
 
     @PutMapping("/roles/{roleId}/rights")
-    @PreAuthorize("hasAuthority('ROLE_UPDATE')")
+    @PreAuthorize("hasAuthority('ROLE_ROLE_UPDATE')")
     public ResponseEntity<Void> assignRightsToRole(@PathVariable Long roleId, @RequestBody Map<String, List<String>> body) {
         userManagementService.assignRightsToRole(roleId, body.get("rightIds"));
         return ResponseEntity.noContent().build();
@@ -103,7 +97,7 @@ public class AdminController {
     // ============ Rights ============
 
     @GetMapping("/rights")
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @PreAuthorize("hasAuthority('ROLE_ROLE_READ')")
     public ResponseEntity<List<Right>> getRights(@RequestParam(defaultValue = "false") boolean includeInactive) {
         return ResponseEntity.ok(userManagementService.findAllRights(includeInactive));
     }

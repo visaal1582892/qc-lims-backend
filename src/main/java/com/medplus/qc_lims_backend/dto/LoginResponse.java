@@ -23,15 +23,15 @@ public class LoginResponse {
     @AllArgsConstructor
     public static class UserSummary {
         private Long         id;
+        private String       employeeId;
         private String       fullName;
-        private String       email;
+        /** Primary role name — used for profile display. */
         private String       role;
+        /** All role names the user holds (may be multiple). */
         private List<String> roles;
+        /** All role IDs the user holds (parallel to roles). */
         private List<String> roleIds;
+        /** Union of rights granted via all roles. */
         private List<String> rights;
-        private String       departmentId;
-        private String       department;
-        private String       designationId;
-        private String       designation;
     }
 }

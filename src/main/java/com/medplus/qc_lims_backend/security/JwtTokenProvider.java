@@ -34,9 +34,13 @@ public class JwtTokenProvider {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(Long userId, String email, List<String> roleNames,
-                                List<String> rightNames,
-                                String departmentName, String departmentId, String fullName) {
+    /**
+     * Generates a signed JWT.
+     * Claims include: uid, name, role (primary), roles, rights.
+     * Subject = employeeId.
+     */
+    public String generateToken(Long userId, String employeeId, List<String> roleNames,
+                                List<String> rightNames, String fullName) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + expirationMs);
 
@@ -45,17 +49,15 @@ public class JwtTokenProvider {
         String primaryRole = roles.isEmpty() ? "" : roles.get(0);
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("uid",          userId);
-        claims.put("name",         fullName);
-        claims.put("role",         primaryRole);
-        claims.put("roles",        roles);
-        claims.put("rights",       rights);
-        claims.put("department",   departmentName);
-        claims.put("departmentId", departmentId);
+        claims.put("uid",    userId);
+        claims.put("name",   fullName);
+        claims.put("role",   primaryRole);
+        claims.put("roles",  roles);
+        claims.put("rights", rights);
 
         return Jwts.builder()
                 .claims(claims)
-                .subject(email)
+                .subject(employeeId)
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiration(exp)
@@ -71,7 +73,7 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 
-    public String getEmail(String token) {
+    public String getEmployeeId(String token) {
         return parse(token).getSubject();
     }
 }

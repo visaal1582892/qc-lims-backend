@@ -99,14 +99,14 @@ public class SecurityConfig {
                         .requestMatchers("/error", "/actuator/health").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/master/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/master/**")
-                            .hasAuthority(Rights.MASTER_DATA_CREATE)
+                            .hasAuthority(Rights.ROLE_MASTER_DATA_CREATE)
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/master/**")
-                            .hasAuthority(Rights.MASTER_DATA_UPDATE)
+                            .hasAuthority(Rights.ROLE_MASTER_DATA_UPDATE)
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/master/**")
-                            .hasAuthority(Rights.MASTER_DATA_DELETE)
+                            .hasAuthority(Rights.ROLE_MASTER_DATA_DELETE)
                         .requestMatchers("/api/admin/**").hasAnyAuthority(
-                                Rights.USER_CREATE, Rights.USER_READ, Rights.USER_UPDATE,
-                                Rights.ROLE_CREATE, Rights.ROLE_READ, Rights.ROLE_UPDATE)
+                                Rights.ROLE_USER_CREATE, Rights.ROLE_USER_READ, Rights.ROLE_USER_UPDATE,
+                                Rights.ROLE_ROLE_CREATE, Rights.ROLE_ROLE_READ, Rights.ROLE_ROLE_UPDATE)
                         .anyRequest().authenticated())
                 .exceptionHandling(eh -> eh
                         .authenticationEntryPoint((req, res, ex) -> {

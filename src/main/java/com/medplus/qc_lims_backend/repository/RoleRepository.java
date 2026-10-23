@@ -27,12 +27,12 @@ public class RoleRepository {
         this.rightRepository = rightRepository;
     }
 
-    /** Resolve a list of role IDs to the union of all right_ids via role_rights_mapping. */
+    /** Resolve a list of role IDs to the union of all right_ids via role_rights. */
     public List<String> findRightIdsByRoleIds(List<String> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) return Collections.emptyList();
         return jdbc.queryForList(
-                "SELECT DISTINCT rrm.right_id FROM role_rights_mapping rrm " +
-                "JOIN roles r ON r.id = rrm.role_id WHERE r.id IN (:ids) AND r.status = 'ACTIVE'",
+                "SELECT DISTINCT rr.right_id FROM role_rights rr " +
+                "JOIN roles r ON r.role_id = rr.role_id WHERE r.role_id IN (:ids) AND r.status = 'ACTIVE'",
                 new MapSqlParameterSource("ids", roleIds), String.class);
     }
 
@@ -40,7 +40,7 @@ public class RoleRepository {
     public Optional<Role> findByCode(String roleCode) {
         try {
             Map<String, Object> row = jdbc.queryForMap(
-                    "SELECT id, role_code, role_name, description, status FROM roles WHERE role_code = :code",
+                    "SELECT role_id, role_code, role_name, description, status FROM roles WHERE role_code = :code",
                     new MapSqlParameterSource("code", roleCode));
             return Optional.of(mapRole(row));
         } catch (Exception e) {
@@ -48,12 +48,12 @@ public class RoleRepository {
         }
     }
 
-    /** Find role by id. */
-    public Optional<Role> findById(Long id) {
+    /** Find role by role_id. */
+    public Optional<Role> findById(Long roleId) {
         try {
             Map<String, Object> row = jdbc.queryForMap(
-                    "SELECT id, role_code, role_name, description, status FROM roles WHERE id = :id",
-                    new MapSqlParameterSource("id", id));
+                    "SELECT role_id, role_code, role_name, description, status FROM roles WHERE role_id = :id",
+                    new MapSqlParameterSource("id", roleId));
             return Optional.of(mapRole(row));
         } catch (Exception e) {
             return Optional.empty();
@@ -64,7 +64,7 @@ public class RoleRepository {
     public Optional<Role> findByName(String roleName) {
         try {
             Map<String, Object> row = jdbc.queryForMap(
-                    "SELECT id, role_code, role_name, description, status FROM roles WHERE role_name = :name",
+                    "SELECT role_id, role_code, role_name, description, status FROM roles WHERE role_name = :name",
                     new MapSqlParameterSource("name", roleName));
             return Optional.of(mapRole(row));
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class RoleRepository {
     public List<Role> findAll(boolean includeInactive) {
         String where = includeInactive ? "" : " WHERE r.status = 'ACTIVE'";
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT id, role_code, role_name, description, status FROM roles r" + where + " ORDER BY role_name",
+                "SELECT role_id, role_code, role_name, description, status FROM roles r" + where + " ORDER BY role_name",
                 Collections.emptyMap());
         List<Role> roles = rows.stream().map(this::mapRole).toList();
         enrichWithRights(roles);
@@ -85,11 +85,11 @@ public class RoleRepository {
 
     private void enrichWithRights(List<Role> roles) {
         if (roles.isEmpty()) return;
-        List<Long> ids = roles.stream().map(Role::getId).toList();
+        List<Long> ids = roles.stream().map(Role::getRoleId).toList();
         List<Map<String, Object>> mappingRows = jdbc.queryForList(
-                "SELECT rrm.role_id, rrm.right_id, ri.right_name, ri.description " +
-                "FROM role_rights_mapping rrm JOIN rights ri ON ri.right_id = rrm.right_id " +
-                "WHERE rrm.role_id IN (:ids) AND ri.status = 'ACTIVE'",
+                "SELECT rr.role_id, rr.right_id, ri.right_name, ri.description " +
+                "FROM role_rights rr JOIN rights ri ON ri.right_id = rr.right_id " +
+                "WHERE rr.role_id IN (:ids) AND ri.status = 'ACTIVE'",
                 new MapSqlParameterSource("ids", ids));
 
         Map<Long, List<Right>> rightsByRole = new HashMap<>();
@@ -103,7 +103,7 @@ public class RoleRepository {
                             .build());
         }
         for (Role role : roles) {
-            role.setRights(rightsByRole.getOrDefault(role.getId(), Collections.emptyList()));
+            role.setRights(rightsByRole.getOrDefault(role.getRoleId(), Collections.emptyList()));
         }
     }
 
@@ -114,7 +114,7 @@ public class RoleRepository {
             try { status = RecordStatus.valueOf(statusStr); } catch (Exception ignored) {}
         }
         return Role.builder()
-                .id(((Number) row.get("id")).longValue())
+                .roleId(((Number) row.get("role_id")).longValue())
                 .roleCode((String) row.get("role_code"))
                 .roleName((String) row.get("role_name"))
                 .description((String) row.get("description"))

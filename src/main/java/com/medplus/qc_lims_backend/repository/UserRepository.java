@@ -28,19 +28,18 @@ public class UserRepository {
     }
 
     private static final String SELECT_BASE = """
-            SELECT u.user_id, u.full_name, u.email, u.password_hash,
-                   u.department_id, u.department_name, u.designation_id,
-                   u.current_active_tasks, u.status, u.created_at
+            SELECT u.user_id, u.employee_id, u.full_name, u.password_hash,
+                   u.status, u.created_at
             FROM users u
             """;
 
     // ============ Single-user lookups ============
 
-    public Optional<User> findByEmail(String email) {
+    public Optional<User> findByEmployeeId(String employeeId) {
         try {
             User u = jdbc.queryForObject(
-                    SELECT_BASE + " WHERE u.email = :email",
-                    new MapSqlParameterSource("email", email),
+                    SELECT_BASE + " WHERE u.employee_id = :employeeId",
+                    new MapSqlParameterSource("employeeId", employeeId),
                     UserRepository::mapRow);
             enrichWithRoles(u);
             return Optional.of(u);
@@ -76,21 +75,15 @@ public class UserRepository {
 
     public Long create(User user) {
         String sql = """
-                INSERT INTO users (full_name, email, password_hash, department_id, department_name,
-                                   designation_id, current_active_tasks, status)
-                VALUES (:fullName, :email, :passwordHash, :departmentId, :departmentName,
-                        :designationId, :currentActiveTasks, :status)
+                INSERT INTO users (employee_id, full_name, password_hash, status)
+                VALUES (:employeeId, :fullName, :passwordHash, :status)
                 """;
         RecordStatus status = user.getStatus() == null ? RecordStatus.ACTIVE : user.getStatus();
         MapSqlParameterSource p = new MapSqlParameterSource()
-                .addValue("fullName",           user.getFullName())
-                .addValue("email",              user.getEmail())
-                .addValue("passwordHash",       user.getPasswordHash())
-                .addValue("departmentId",       user.getDepartmentId())
-                .addValue("departmentName",     user.getDepartmentName())
-                .addValue("designationId",      user.getDesignationId())
-                .addValue("currentActiveTasks", user.getCurrentActiveTasks() == null ? 0 : user.getCurrentActiveTasks())
-                .addValue("status",             status.name());
+                .addValue("employeeId",   user.getEmployeeId())
+                .addValue("fullName",     user.getFullName())
+                .addValue("passwordHash", user.getPasswordHash())
+                .addValue("status",       status.name());
         KeyHolder kh = new GeneratedKeyHolder();
         jdbc.update(sql, p, kh, new String[]{"user_id"});
         return kh.getKey() != null ? kh.getKey().longValue() : null;
@@ -98,19 +91,14 @@ public class UserRepository {
 
     public int update(User user) {
         return jdbc.update("""
-                UPDATE users SET full_name = :fullName, email = :email,
-                    department_id = :departmentId, department_name = :departmentName,
-                    designation_id = :designationId, status = :status
+                UPDATE users SET employee_id = :employeeId, full_name = :fullName, status = :status
                 WHERE user_id = :id
                 """,
                 new MapSqlParameterSource()
-                        .addValue("fullName",      user.getFullName())
-                        .addValue("email",         user.getEmail())
-                        .addValue("departmentId",  user.getDepartmentId())
-                        .addValue("departmentName", user.getDepartmentName())
-                        .addValue("designationId", user.getDesignationId())
-                        .addValue("status",        user.getStatus() == null ? RecordStatus.ACTIVE.name() : user.getStatus().name())
-                        .addValue("id",            user.getUserId()));
+                        .addValue("employeeId", user.getEmployeeId())
+                        .addValue("fullName",   user.getFullName())
+                        .addValue("status",     user.getStatus() == null ? RecordStatus.ACTIVE.name() : user.getStatus().name())
+                        .addValue("id",         user.getUserId()));
     }
 
     public int updatePassword(Long userId, String passwordHash) {
@@ -151,8 +139,8 @@ public class UserRepository {
     private void enrichWithRoles(User user) {
         if (user == null) return;
         List<Map<String, Object>> rows = jdbc.queryForList("""
-                SELECT r.id, r.role_code, r.role_name
-                  FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                SELECT r.role_id, r.role_code, r.role_name
+                  FROM user_roles ur JOIN roles r ON r.role_id = ur.role_id
                  WHERE ur.user_id = :uid ORDER BY r.role_code
                 """, new MapSqlParameterSource("uid", user.getUserId()));
 
@@ -160,7 +148,7 @@ public class UserRepository {
         List<String> roleNames = new ArrayList<>();
         List<User.UserRole> roles = new ArrayList<>();
         for (Map<String, Object> row : rows) {
-            String roleId = row.get("id") != null ? String.valueOf(((Number) row.get("id")).longValue()) : "";
+            String roleId = row.get("role_id") != null ? String.valueOf(((Number) row.get("role_id")).longValue()) : "";
             roleIds.add(roleId);
             roleNames.add((String) row.get("role_name"));
             roles.add(new User.UserRole(
@@ -182,8 +170,8 @@ public class UserRepository {
         List<Long> ids = users.stream().map(User::getUserId).collect(Collectors.toList());
 
         List<Map<String, Object>> rows = jdbc.queryForList("""
-                SELECT ur.user_id, r.id, r.role_code, r.role_name
-                  FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                SELECT ur.user_id, r.role_id, r.role_code, r.role_name
+                  FROM user_roles ur JOIN roles r ON r.role_id = ur.role_id
                  WHERE ur.user_id IN (:ids) ORDER BY ur.user_id, r.role_code
                 """, new MapSqlParameterSource("ids", ids));
 
@@ -192,7 +180,7 @@ public class UserRepository {
         Map<Long, List<User.UserRole>> rolesMap = new HashMap<>();
         for (Map<String, Object> row : rows) {
             long uid = ((Number) row.get("user_id")).longValue();
-            String roleId = String.valueOf(((Number) row.get("id")).longValue());
+            String roleId = String.valueOf(((Number) row.get("role_id")).longValue());
             roleIdsMap.computeIfAbsent(uid, k -> new ArrayList<>()).add(roleId);
             roleNamesMap.computeIfAbsent(uid, k -> new ArrayList<>()).add((String) row.get("role_name"));
             rolesMap.computeIfAbsent(uid, k -> new ArrayList<>()).add(
@@ -210,23 +198,14 @@ public class UserRepository {
 
     // ============ Mapper ============
 
-    private static Integer getNullableInt(ResultSet rs, String col) throws SQLException {
-        int v = rs.getInt(col);
-        return rs.wasNull() ? null : v;
-    }
-
     private static User mapRow(ResultSet rs, int rowNum) throws SQLException {
         String raw = rs.getString("status");
         RecordStatus status = raw == null ? RecordStatus.ACTIVE : RecordStatus.valueOf(raw);
         return User.builder()
                 .userId(rs.getLong("user_id"))
+                .employeeId(rs.getString("employee_id"))
                 .fullName(rs.getString("full_name"))
-                .email(rs.getString("email"))
                 .passwordHash(rs.getString("password_hash"))
-                .departmentId(rs.getString("department_id"))
-                .departmentName(rs.getString("department_name"))
-                .designationId(rs.getString("designation_id"))
-                .currentActiveTasks(getNullableInt(rs, "current_active_tasks"))
                 .status(status)
                 .createdAt(rs.getTimestamp("created_at") == null ? null
                         : rs.getTimestamp("created_at").toLocalDateTime())

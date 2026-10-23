@@ -41,16 +41,12 @@ public class AuthController {
         User u = principal.getUser();
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", u.getUserId());
+        body.put("employeeId", u.getEmployeeId());
         body.put("fullName", u.getFullName());
-        body.put("email", u.getEmail());
         body.put("role", u.getPrimaryRoleName() == null ? "" : u.getPrimaryRoleName());
         body.put("roles", u.getRoleNames() == null ? Collections.emptyList() : u.getRoleNames());
         body.put("roleIds", u.getRoleIds() == null ? Collections.emptyList() : u.getRoleIds());
         body.put("rights", u.getRightNames() == null ? Collections.emptyList() : u.getRightNames());
-        body.put("department", u.getDepartmentName() == null ? "" : u.getDepartmentName());
-        body.put("departmentId", u.getDepartmentId() == null ? "" : u.getDepartmentId());
-        body.put("designation", "");
-        body.put("designationId", u.getDesignationId() == null ? "" : u.getDesignationId());
         return ResponseEntity.ok(body);
     }
 

@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role {
-    private Long         id;
+    private Long         roleId;
     private String       roleCode;
     private String       roleName;
     private String       description;

@@ -13,9 +13,6 @@ import lombok.NoArgsConstructor;
 public class UpdateUserRequest {
 
     private String fullName;
-    private String email;
-    private String departmentId;
-    private String departmentName;
-    private String designationId;
+    private String employeeId;
     private RecordStatus status;
 }

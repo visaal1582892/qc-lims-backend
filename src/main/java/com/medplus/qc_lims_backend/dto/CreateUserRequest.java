@@ -15,16 +15,13 @@ import java.util.List;
 public class CreateUserRequest {
 
     @NotBlank
-    private String fullName;
+    private String employeeId;
 
     @NotBlank
-    private String email;
+    private String fullName;
 
     @NotBlank
     private String password;
 
-    private String departmentId;
-    private String departmentName;
-    private String designationId;
     private List<Long> roleIds;
 }
