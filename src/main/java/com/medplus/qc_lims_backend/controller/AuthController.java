@@ -5,8 +5,8 @@ import com.medplus.qc_lims_backend.dto.ChangePasswordRequest;
 import com.medplus.qc_lims_backend.dto.LoginRequest;
 import com.medplus.qc_lims_backend.dto.LoginResponse;
 import com.medplus.qc_lims_backend.security.CustomUserDetails;
-import com.medplus.qc_lims_backend.service.AuthService;
-import com.medplus.qc_lims_backend.service.UserManagementService;
+import com.medplus.qc_lims_backend.service.AuthServiceInterface;
+import com.medplus.qc_lims_backend.service.UserManagementServiceInterface;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,10 +20,10 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
-    private final UserManagementService userManagementService;
+    private final AuthServiceInterface authService;
+    private final UserManagementServiceInterface userManagementService;
 
-    public AuthController(AuthService authService, UserManagementService userManagementService) {
+    public AuthController(AuthServiceInterface authService, UserManagementServiceInterface userManagementService) {
         this.authService = authService;
         this.userManagementService = userManagementService;
     }

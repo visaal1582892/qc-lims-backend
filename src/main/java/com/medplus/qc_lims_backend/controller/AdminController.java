@@ -6,8 +6,11 @@ import com.medplus.qc_lims_backend.domain.User;
 import com.medplus.qc_lims_backend.dto.CreateUserRequest;
 import com.medplus.qc_lims_backend.dto.UpdateUserRequest;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
-import com.medplus.qc_lims_backend.service.UserManagementService;
+import com.medplus.qc_lims_backend.security.Rights;
+import com.medplus.qc_lims_backend.service.UserManagementServiceInterface;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,22 +22,24 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    private final UserManagementService userManagementService;
+    private final UserManagementServiceInterface userManagementService;
 
-    public AdminController(UserManagementService userManagementService) {
+    public AdminController(UserManagementServiceInterface userManagementService) {
         this.userManagementService = userManagementService;
     }
 
     // ============ Users ============
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('ROLE_USER_READ')")
-    public ResponseEntity<List<User>> getUsers(@RequestParam(defaultValue = "false") boolean includeInactive) {
-        return ResponseEntity.ok(userManagementService.findAll(includeInactive));
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
+    public ResponseEntity<Page<User>> getUsers(
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            Pageable pageable) {
+        return ResponseEntity.ok(userManagementService.findAll(includeInactive, pageable));
     }
 
     @PostMapping("/users")
-    @PreAuthorize("hasAuthority('ROLE_USER_CREATE')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
         User user = User.builder()
                 .employeeId(request.getEmployeeId())
@@ -53,7 +58,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
     public ResponseEntity<Void> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         User user = User.builder()
                 .userId(id)
@@ -66,14 +71,14 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/roles")
-    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
     public ResponseEntity<Void> assignRoles(@PathVariable Long id, @RequestBody Map<String, List<Long>> body) {
         userManagementService.assignRoles(id, body.get("roleIds"));
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/users/{id}/status")
-    @PreAuthorize("hasAuthority('ROLE_USER_UPDATE')")
+    @PatchMapping("/users/{id}/status")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
     public ResponseEntity<Void> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
         userManagementService.updateStatus(id, RecordStatus.valueOf(body.get("status")));
         return ResponseEntity.noContent().build();
@@ -82,13 +87,15 @@ public class AdminController {
     // ============ Roles ============
 
     @GetMapping("/roles")
-    @PreAuthorize("hasAuthority('ROLE_ROLE_READ')")
-    public ResponseEntity<List<Role>> getRoles(@RequestParam(defaultValue = "false") boolean includeInactive) {
-        return ResponseEntity.ok(userManagementService.findAllRoles(includeInactive));
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
+    public ResponseEntity<Page<Role>> getRoles(
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            Pageable pageable) {
+        return ResponseEntity.ok(userManagementService.findAllRoles(includeInactive, pageable));
     }
 
     @PutMapping("/roles/{roleId}/rights")
-    @PreAuthorize("hasAuthority('ROLE_ROLE_UPDATE')")
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
     public ResponseEntity<Void> assignRightsToRole(@PathVariable Long roleId, @RequestBody Map<String, List<String>> body) {
         userManagementService.assignRightsToRole(roleId, body.get("rightIds"));
         return ResponseEntity.noContent().build();
@@ -97,8 +104,10 @@ public class AdminController {
     // ============ Rights ============
 
     @GetMapping("/rights")
-    @PreAuthorize("hasAuthority('ROLE_ROLE_READ')")
-    public ResponseEntity<List<Right>> getRights(@RequestParam(defaultValue = "false") boolean includeInactive) {
-        return ResponseEntity.ok(userManagementService.findAllRights(includeInactive));
+    @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
+    public ResponseEntity<Page<Right>> getRights(
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            Pageable pageable) {
+        return ResponseEntity.ok(userManagementService.findAllRights(includeInactive, pageable));
     }
 }

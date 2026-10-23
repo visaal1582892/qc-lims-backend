@@ -1,4 +1,4 @@
-package com.medplus.qc_lims_backend.service;
+package com.medplus.qc_lims_backend.service.impl;
 
 import com.medplus.qc_lims_backend.domain.User;
 import com.medplus.qc_lims_backend.dto.LoginRequest;
@@ -6,6 +6,7 @@ import com.medplus.qc_lims_backend.dto.LoginResponse;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.repository.UserRepository;
 import com.medplus.qc_lims_backend.security.JwtTokenProvider;
+import com.medplus.qc_lims_backend.service.AuthServiceInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AuthService {
+public class AuthServiceImpl implements AuthServiceInterface {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -23,14 +24,15 @@ public class AuthService {
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtTokenProvider tokenProvider) {
+    public AuthServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
+                           JwtTokenProvider tokenProvider) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
 
+    @Override
     public LoginResponse login(LoginRequest req) {
         log.info("LOGIN attempt | employeeId={}", req.getEmployeeId());
 

@@ -9,7 +9,17 @@ Whenever a new feature is developed, new rights must be added here.
 
 | Right Constant | Description | Mapped Roles |
 | --- | --- | --- |
-| ROLE_TEST_PARAMETER_READ | Can view test parameters | QC_ANALYST, QC_HEAD |
+| ROLE_SYSTEM_ADMIN | Full system administration — users, roles, rights | ADMIN |
+
+### Phase 1 — IAM
+
+| Right Constant | Description | Mapped Roles |
+| --- | --- | --- |
+| ROLE_SYSTEM_ADMIN | Full system administration | ADMIN |
+
+---
+
+### Phase 1 — Test Parameters
 | ROLE_TEST_PARAMETER_CREATE | Can create new test parameters | QC_HEAD |
 | ROLE_TEST_PARAMETER_UPDATE | Can edit existing test parameters | QC_HEAD |
 | ROLE_TEST_PARAMETER_DELETE | Can soft-delete test parameters | QC_HEAD, ADMIN |

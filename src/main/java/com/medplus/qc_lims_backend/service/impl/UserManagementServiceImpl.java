@@ -1,4 +1,4 @@
-package com.medplus.qc_lims_backend.service;
+package com.medplus.qc_lims_backend.service.impl;
 
 import com.medplus.qc_lims_backend.domain.Right;
 import com.medplus.qc_lims_backend.domain.Role;
@@ -9,7 +9,11 @@ import com.medplus.qc_lims_backend.exception.ResourceNotFoundException;
 import com.medplus.qc_lims_backend.repository.RightRepository;
 import com.medplus.qc_lims_backend.repository.RoleRepository;
 import com.medplus.qc_lims_backend.repository.UserRepository;
+import com.medplus.qc_lims_backend.service.UserManagementServiceInterface;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,7 +24,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class UserManagementService {
+public class UserManagementServiceImpl implements UserManagementServiceInterface {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -28,11 +32,11 @@ public class UserManagementService {
     private final PasswordEncoder passwordEncoder;
     private final NamedParameterJdbcTemplate jdbc;
 
-    public UserManagementService(UserRepository userRepository,
-                                 RoleRepository roleRepository,
-                                 RightRepository rightRepository,
-                                 PasswordEncoder passwordEncoder,
-                                 NamedParameterJdbcTemplate jdbc) {
+    public UserManagementServiceImpl(UserRepository userRepository,
+                                     RoleRepository roleRepository,
+                                     RightRepository rightRepository,
+                                     PasswordEncoder passwordEncoder,
+                                     NamedParameterJdbcTemplate jdbc) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.rightRepository = rightRepository;
@@ -42,15 +46,22 @@ public class UserManagementService {
 
     // ============ Users ============
 
-    public List<User> findAll(boolean includeInactive) {
-        return userRepository.findAll(includeInactive);
+    @Override
+    public Page<User> findAll(boolean includeInactive, Pageable pageable) {
+        List<User> all = userRepository.findAll(includeInactive);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<User> pageContent = start < all.size() ? all.subList(start, end) : List.of();
+        return new PageImpl<>(pageContent, pageable, all.size());
     }
 
+    @Override
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
     }
 
+    @Override
     @Transactional
     public User create(User user) {
         if (user.getPasswordHash() == null || user.getPasswordHash().isBlank()) {
@@ -64,6 +75,7 @@ public class UserManagementService {
         return userRepository.findById(newId).orElse(user);
     }
 
+    @Override
     @Transactional
     public void assignRoles(Long userId, List<Long> roleIds) {
         userRepository.findById(userId)
@@ -72,6 +84,7 @@ public class UserManagementService {
         log.info("Assigned roles {} to user {}", roleIds, userId);
     }
 
+    @Override
     @Transactional
     public void update(User user) {
         userRepository.findById(user.getUserId())
@@ -79,6 +92,7 @@ public class UserManagementService {
         userRepository.update(user);
     }
 
+    @Override
     @Transactional
     public void changePassword(Long userId, String currentPassword, String newPassword) {
         User user = userRepository.findById(userId)
@@ -89,6 +103,7 @@ public class UserManagementService {
         userRepository.updatePassword(userId, passwordEncoder.encode(newPassword));
     }
 
+    @Override
     @Transactional
     public void updateStatus(Long userId, RecordStatus status) {
         userRepository.findById(userId)
@@ -98,16 +113,16 @@ public class UserManagementService {
 
     // ============ Roles ============
 
-    public List<Role> findAllRoles(boolean includeInactive) {
-        return roleRepository.findAll(includeInactive);
+    @Override
+    public Page<Role> findAllRoles(boolean includeInactive, Pageable pageable) {
+        List<Role> all = roleRepository.findAll(includeInactive);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<Role> pageContent = start < all.size() ? all.subList(start, end) : List.of();
+        return new PageImpl<>(pageContent, pageable, all.size());
     }
 
-    // ============ Rights ============
-
-    public List<Right> findAllRights(boolean includeInactive) {
-        return rightRepository.findAll(includeInactive);
-    }
-
+    @Override
     @Transactional
     public void assignRightsToRole(Long roleId, List<String> rightIds) {
         roleRepository.findById(roleId)
@@ -121,5 +136,16 @@ public class UserManagementService {
                         new MapSqlParameterSource("rid", roleId).addValue("rightId", rightId));
             }
         }
+    }
+
+    // ============ Rights ============
+
+    @Override
+    public Page<Right> findAllRights(boolean includeInactive, Pageable pageable) {
+        List<Right> all = rightRepository.findAll(includeInactive);
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<Right> pageContent = start < all.size() ? all.subList(start, end) : List.of();
+        return new PageImpl<>(pageContent, pageable, all.size());
     }
 }
