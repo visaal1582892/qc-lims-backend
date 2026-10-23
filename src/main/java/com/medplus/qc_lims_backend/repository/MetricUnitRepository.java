@@ -4,7 +4,9 @@ import com.medplus.qc_lims_backend.domain.MetricUnit;
 import com.medplus.qc_lims_backend.enums.MasterStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,9 +15,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MetricUnitRepository extends JpaRepository<MetricUnit, Long> {
+public interface MetricUnitRepository extends JpaRepository<MetricUnit, Long>, JpaSpecificationExecutor<MetricUnit> {
 
     Page<MetricUnit> findByStatus(MasterStatus status, Pageable pageable);
+
+    Page<MetricUnit> findByStatus(MasterStatus status, Specification<MetricUnit> spec, Pageable pageable);
+
+    Page<MetricUnit> findAll(Specification<MetricUnit> spec, Pageable pageable);
 
     @Modifying
     @Query("UPDATE MetricUnit m SET m.status = :status, m.updatedBy = :user WHERE m.id IN :ids")

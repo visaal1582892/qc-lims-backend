@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AnalystQualificationServiceInterface {
 
-    Page<AnalystQualification> findAll(boolean includeInactive, Pageable pageable);
+    Page<AnalystQualification> findAll(String search, boolean includeInactive, Pageable pageable);
 
     BulkUploadResponse uploadExcel(MultipartFile file, String employeeId);
 

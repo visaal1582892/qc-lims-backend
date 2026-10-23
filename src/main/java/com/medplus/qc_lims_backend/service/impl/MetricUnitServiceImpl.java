@@ -8,11 +8,13 @@ import com.medplus.qc_lims_backend.enums.MasterStatus;
 import com.medplus.qc_lims_backend.exception.BadRequestException;
 import com.medplus.qc_lims_backend.repository.MetricUnitRepository;
 import com.medplus.qc_lims_backend.service.MetricUnitServiceInterface;
+import com.medplus.qc_lims_backend.specifications.MasterSpecifications;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,11 +39,12 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
     }
 
     @Override
-    public Page<MetricUnit> findAll(boolean includeInactive, Pageable pageable) {
+    public Page<MetricUnit> findAll(String search, boolean includeInactive, Pageable pageable) {
+        Specification<MetricUnit> spec = MasterSpecifications.nameOrSubNameContains(search);
         if (includeInactive) {
-            return repository.findAll(pageable);
+            return repository.findAll(spec, pageable);
         }
-        return repository.findByStatus(MasterStatus.ACTIVE, pageable);
+        return repository.findByStatus(MasterStatus.ACTIVE, spec, pageable);
     }
 
     @Override

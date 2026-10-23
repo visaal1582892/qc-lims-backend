@@ -10,11 +10,13 @@ import com.medplus.qc_lims_backend.exception.BadRequestException;
 import com.medplus.qc_lims_backend.repository.MetricUnitRepository;
 import com.medplus.qc_lims_backend.repository.TestParameterRepository;
 import com.medplus.qc_lims_backend.service.TestParameterServiceInterface;
+import com.medplus.qc_lims_backend.specifications.MasterSpecifications;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,11 +44,12 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
     }
 
     @Override
-    public Page<TestParameter> findAll(boolean includeInactive, Pageable pageable) {
+    public Page<TestParameter> findAll(String search, boolean includeInactive, Pageable pageable) {
+        Specification<TestParameter> spec = MasterSpecifications.nameContains(search);
         if (includeInactive) {
-            return repository.findAll(pageable);
+            return repository.findAll(spec, pageable);
         }
-        return repository.findByStatus(MasterStatus.ACTIVE, pageable);
+        return repository.findByStatus(MasterStatus.ACTIVE, spec, pageable);
     }
 
     @Override

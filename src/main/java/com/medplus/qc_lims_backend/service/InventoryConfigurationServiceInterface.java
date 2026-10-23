@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface InventoryConfigurationServiceInterface {
 
-    Page<InventoryConfiguration> findAll(boolean includeInactive, Pageable pageable);
+    Page<InventoryConfiguration> findAll(String search, boolean includeInactive, Pageable pageable);
 
     BulkUploadResponse uploadExcel(MultipartFile file, String employeeId);
 

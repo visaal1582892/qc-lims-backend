@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface MetricUnitServiceInterface {
 
-    Page<MetricUnit> findAll(boolean includeInactive, Pageable pageable);
+    Page<MetricUnit> findAll(String search, boolean includeInactive, Pageable pageable);
     BulkUploadResponse uploadExcel(MultipartFile file, String employeeId);
     byte[] downloadTemplate();
 }

@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface TestParameterServiceInterface {
 
-    Page<TestParameter> findAll(boolean includeInactive, Pageable pageable);
+    Page<TestParameter> findAll(String search, boolean includeInactive, Pageable pageable);
     BulkUploadResponse uploadExcel(MultipartFile file, String employeeId);
     byte[] downloadTemplate();
 }
