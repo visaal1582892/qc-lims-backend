@@ -223,11 +223,11 @@ public final class ExcelUtils {
     // ------------------------------------------------------------------
 
     /**
-     * Check if the given row is the last physical row (used to break the loop
-     * after the last data row to avoid processing empty trailing rows).
+     * Check if the given row exceeds the physical sheet bounds
+     * (used to break the loop and avoid processing empty trailing rows).
      */
     public static boolean isLastRow(int rowNum, Sheet sheet) {
-        return rowNum == sheet.getPhysicalNumberOfRows();
+        return rowNum > sheet.getPhysicalNumberOfRows();
     }
 
     /**
