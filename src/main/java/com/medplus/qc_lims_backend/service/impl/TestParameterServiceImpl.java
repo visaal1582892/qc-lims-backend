@@ -105,7 +105,9 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
         try (Workbook wb = WorkbookFactory.create(file.getInputStream())) {
             Sheet sheet = wb.getSheetAt(0);
             int rowNum = 1;
+            boolean first = true;
             for (Row row : sheet) {
+                if (first) { first = false; rowNum++; continue; } // skip header row
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
                 // Skip completely blank rows
                 String action = ExcelUtils.getCellString(row, 4);
