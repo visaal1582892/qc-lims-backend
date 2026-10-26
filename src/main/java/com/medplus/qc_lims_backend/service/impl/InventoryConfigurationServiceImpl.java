@@ -141,17 +141,23 @@ public class InventoryConfigurationServiceImpl implements InventoryConfiguration
         ExcelUtils.validateActionAndId(row, errors);
         if (errors.size() > 1) return errors;
 
-        if (row.productId() == null || row.productId().isBlank()) {
-            errors.add("Product ID is required");
+        String action = row.action().toUpperCase();
+
+        // For Deactivate, only ID + Action are needed
+        if (!action.equals("D")) {
+            if (row.productId() == null || row.productId().isBlank()) {
+                errors.add("Product ID is required");
+            }
+            if (row.parameterId() == null) {
+                errors.add("Parameter ID is required");
+            }
+            if (row.countNeeded() == null || row.countNeeded() <= 0) {
+                errors.add(ErrorMessages.ERR_COUNT_MUST_BE_POSITIVE.getMessage());
+            }
         }
-        if (row.parameterId() == null) {
-            errors.add("Parameter ID is required");
-        }
-        if (row.countNeeded() == null || row.countNeeded() <= 0) {
-            errors.add(ErrorMessages.ERR_COUNT_MUST_BE_POSITIVE.getMessage());
-        }
+
         ExcelUtils.validateExists(row, existing, errors, "Inventory Configuration");
-        if (row.parameterId() != null && !params.containsKey(row.parameterId())) {
+        if (!action.equals("D") && row.parameterId() != null && !params.containsKey(row.parameterId())) {
             errors.add("The specified parameter ID does not exist");
         }
 

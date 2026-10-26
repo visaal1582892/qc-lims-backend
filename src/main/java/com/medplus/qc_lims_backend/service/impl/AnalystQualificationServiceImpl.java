@@ -141,24 +141,30 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
         ExcelUtils.validateActionAndId(row, errors);
         if (errors.size() > 1) return errors;
 
-        if (row.employeeId() == null || row.employeeId().isBlank()) {
-            errors.add("Employee ID is required");
-        }
-        if (row.parameterId() == null) {
-            errors.add("Parameter ID is required");
-        }
-        ExcelUtils.validateExists(row, existing, errors, "Analyst Qualification");
-        if (row.parameterId() != null && !params.containsKey(row.parameterId())) {
-            errors.add("The specified parameter ID does not exist");
-        }
-        if (row.qualifiedOn() == null || row.qualifiedOn().isBlank()) {
-            errors.add("Qualified On date is required");
-        } else {
-            try {
-                LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
-            } catch (DateTimeParseException e) {
-                errors.add("Qualified On must be in YYYY-MM-DD format");
+        String action = row.action().toUpperCase();
+
+        // For Deactivate, only ID + Action are needed
+        if (!action.equals("D")) {
+            if (row.employeeId() == null || row.employeeId().isBlank()) {
+                errors.add("Employee ID is required");
             }
+            if (row.parameterId() == null) {
+                errors.add("Parameter ID is required");
+            }
+            if (row.qualifiedOn() == null || row.qualifiedOn().isBlank()) {
+                errors.add("Qualified On date is required");
+            } else {
+                try {
+                    LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
+                } catch (DateTimeParseException e) {
+                    errors.add("Qualified On must be in YYYY-MM-DD format");
+                }
+            }
+        }
+
+        ExcelUtils.validateExists(row, existing, errors, "Analyst Qualification");
+        if (!action.equals("D") && row.parameterId() != null && !params.containsKey(row.parameterId())) {
+            errors.add("The specified parameter ID does not exist");
         }
 
         return errors;

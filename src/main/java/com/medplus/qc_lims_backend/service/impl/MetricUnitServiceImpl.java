@@ -122,8 +122,13 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
         ExcelUtils.validateActionAndId(row, errors);
         if (errors.size() > 1) return errors; // action is invalid, skip rest
 
-        if (row.name() == null || row.name().isBlank()) {
-            errors.add("Name is required");
+        String action = row.action().toUpperCase();
+
+        // For Deactivate, only ID + Action are needed — no field validation
+        if (!action.equals("D")) {
+            if (row.name() == null || row.name().isBlank()) {
+                errors.add("Name is required");
+            }
         }
 
         ExcelUtils.validateExists(row, existing, errors, "Metric Unit");

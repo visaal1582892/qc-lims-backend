@@ -136,16 +136,22 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
         ExcelUtils.validateActionAndId(row, errors);
         if (errors.size() > 1) return errors;
 
-        if (row.name() == null || row.name().isBlank()) {
-            errors.add("Name is required");
+        String action = row.action().toUpperCase();
+
+        // For Deactivate, only ID + Action are needed
+        if (!action.equals("D")) {
+            if (row.name() == null || row.name().isBlank()) {
+                errors.add("Name is required");
+            }
+            if (row.resultType() == null || !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
+                errors.add("Result type must be TEXTUAL or METRICS");
+            }
+            if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
+                errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
+            }
         }
-        if (row.resultType() == null || !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
-            errors.add("Result type must be TEXTUAL or METRICS");
-        }
+
         ExcelUtils.validateExists(row, existing, errors, "Test Parameter");
-        if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
-            errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
-        }
 
         return errors;
     }
