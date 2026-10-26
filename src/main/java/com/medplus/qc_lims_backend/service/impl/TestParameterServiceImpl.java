@@ -140,14 +140,28 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
 
         // For Deactivate, only ID + Action are needed
         if (!action.equals("D")) {
-            if (row.name() == null || row.name().isBlank()) {
-                errors.add("Name is required");
-            }
-            if (row.resultType() == null || !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
-                errors.add("Result type must be TEXTUAL or METRICS");
-            }
-            if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
-                errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
+            if (action.equals("A")) {
+                if (row.name() == null || row.name().isBlank()) {
+                    errors.add("Name is required");
+                }
+                if (row.resultType() == null || !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
+                    errors.add("Result type must be TEXTUAL or METRICS");
+                }
+                if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
+                    errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
+                }
+            } else {
+                // Update: at least one field required; validate provided fields
+                if (row.resultType() != null && !row.resultType().isBlank()
+                        && !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
+                    errors.add("Result type must be TEXTUAL or METRICS");
+                }
+                if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
+                    errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
+                }
+                ExcelUtils.validateUpdateHasFields(row, errors,
+                        "Name", row.name(), "Result Type", row.resultType(),
+                        "Metric Unit ID", String.valueOf(row.metricUnitId()));
             }
         }
 
@@ -186,10 +200,16 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
         if (!updates.isEmpty()) {
             List<TestParameter> toUpdate = updates.stream().map(r -> {
                 TestParameter tp = existingById.get(r.id());
-                tp.setName(r.name());
-                tp.setResultType(r.resultType());
-                MetricUnit mu = r.metricUnitId() != null ? metricUnitsById.get(r.metricUnitId()) : null;
-                tp.setMetricUnit(mu);
+                if (r.name() != null && !r.name().isBlank()) {
+                    tp.setName(r.name());
+                }
+                if (r.resultType() != null && !r.resultType().isBlank()) {
+                    tp.setResultType(r.resultType());
+                }
+                if (r.metricUnitId() != null) {
+                    MetricUnit mu = metricUnitsById.get(r.metricUnitId());
+                    tp.setMetricUnit(mu);
+                }
                 return tp;
             }).toList();
             repository.saveAll(toUpdate);

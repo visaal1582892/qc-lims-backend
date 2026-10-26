@@ -145,21 +145,32 @@ public class InventoryConfigurationServiceImpl implements InventoryConfiguration
 
         // For Deactivate, only ID + Action are needed
         if (!action.equals("D")) {
-            if (row.productId() == null || row.productId().isBlank()) {
-                errors.add("Product ID is required");
-            }
-            if (row.parameterId() == null) {
-                errors.add("Parameter ID is required");
-            }
-            if (row.countNeeded() == null || row.countNeeded() <= 0) {
-                errors.add(ErrorMessages.ERR_COUNT_MUST_BE_POSITIVE.getMessage());
+            if (action.equals("A")) {
+                if (row.productId() == null || row.productId().isBlank()) {
+                    errors.add("Product ID is required");
+                }
+                if (row.parameterId() == null) {
+                    errors.add("Parameter ID is required");
+                }
+                if (row.countNeeded() == null || row.countNeeded() <= 0) {
+                    errors.add(ErrorMessages.ERR_COUNT_MUST_BE_POSITIVE.getMessage());
+                }
+            } else {
+                // Update: at least one field required; validate provided fields
+                if (row.countNeeded() != null && row.countNeeded() <= 0) {
+                    errors.add(ErrorMessages.ERR_COUNT_MUST_BE_POSITIVE.getMessage());
+                }
+                if (row.parameterId() != null && !params.containsKey(row.parameterId())) {
+                    errors.add("The specified parameter ID does not exist");
+                }
+                ExcelUtils.validateUpdateHasFields(row, errors,
+                        "Product ID", row.productId(), "Parameter ID",
+                        String.valueOf(row.parameterId()), "Count Needed",
+                        String.valueOf(row.countNeeded()));
             }
         }
 
         ExcelUtils.validateExists(row, existing, errors, "Inventory Configuration");
-        if (!action.equals("D") && row.parameterId() != null && !params.containsKey(row.parameterId())) {
-            errors.add("The specified parameter ID does not exist");
-        }
 
         return errors;
     }
@@ -194,10 +205,16 @@ public class InventoryConfigurationServiceImpl implements InventoryConfiguration
         if (!updates.isEmpty()) {
             List<InventoryConfiguration> toUpdate = updates.stream().map(r -> {
                 InventoryConfiguration ic = existingById.get(r.id());
-                ic.setProductId(r.productId());
-                TestParameter tp = paramsById.get(r.parameterId());
-                ic.setTestParameter(tp);
-                ic.setCountNeeded(r.countNeeded());
+                if (r.productId() != null && !r.productId().isBlank()) {
+                    ic.setProductId(r.productId());
+                }
+                if (r.parameterId() != null) {
+                    TestParameter tp = paramsById.get(r.parameterId());
+                    ic.setTestParameter(tp);
+                }
+                if (r.countNeeded() != null) {
+                    ic.setCountNeeded(r.countNeeded());
+                }
                 return ic;
             }).toList();
             repository.saveAll(toUpdate);

@@ -145,27 +145,41 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
 
         // For Deactivate, only ID + Action are needed
         if (!action.equals("D")) {
-            if (row.employeeId() == null || row.employeeId().isBlank()) {
-                errors.add("Employee ID is required");
-            }
-            if (row.parameterId() == null) {
-                errors.add("Parameter ID is required");
-            }
-            if (row.qualifiedOn() == null || row.qualifiedOn().isBlank()) {
-                errors.add("Qualified On date is required");
-            } else {
-                try {
-                    LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
-                } catch (DateTimeParseException e) {
-                    errors.add("Qualified On must be in YYYY-MM-DD format");
+            if (action.equals("A")) {
+                if (row.employeeId() == null || row.employeeId().isBlank()) {
+                    errors.add("Employee ID is required");
                 }
+                if (row.parameterId() == null) {
+                    errors.add("Parameter ID is required");
+                }
+                if (row.qualifiedOn() == null || row.qualifiedOn().isBlank()) {
+                    errors.add("Qualified On date is required");
+                } else {
+                    try {
+                        LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
+                    } catch (DateTimeParseException e) {
+                        errors.add("Qualified On must be in YYYY-MM-DD format");
+                    }
+                }
+            } else {
+                // Update: at least one field required; validate provided fields
+                if (row.qualifiedOn() != null && !row.qualifiedOn().isBlank()) {
+                    try {
+                        LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
+                    } catch (DateTimeParseException e) {
+                        errors.add("Qualified On must be in YYYY-MM-DD format");
+                    }
+                }
+                if (row.parameterId() != null && !params.containsKey(row.parameterId())) {
+                    errors.add("The specified parameter ID does not exist");
+                }
+                ExcelUtils.validateUpdateHasFields(row, errors,
+                        "Employee ID", row.employeeId(), "Parameter ID",
+                        String.valueOf(row.parameterId()), "Qualified On", row.qualifiedOn());
             }
         }
 
         ExcelUtils.validateExists(row, existing, errors, "Analyst Qualification");
-        if (!action.equals("D") && row.parameterId() != null && !params.containsKey(row.parameterId())) {
-            errors.add("The specified parameter ID does not exist");
-        }
 
         return errors;
     }
@@ -200,10 +214,16 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
         if (!updates.isEmpty()) {
             List<AnalystQualification> toUpdate = updates.stream().map(r -> {
                 AnalystQualification aq = existingById.get(r.id());
-                aq.setEmployeeId(r.employeeId());
-                TestParameter tp = paramsById.get(r.parameterId());
-                aq.setTestParameter(tp);
-                aq.setQualifiedOn(LocalDate.parse(r.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE));
+                if (r.employeeId() != null && !r.employeeId().isBlank()) {
+                    aq.setEmployeeId(r.employeeId());
+                }
+                if (r.parameterId() != null) {
+                    TestParameter tp = paramsById.get(r.parameterId());
+                    aq.setTestParameter(tp);
+                }
+                if (r.qualifiedOn() != null && !r.qualifiedOn().isBlank()) {
+                    aq.setQualifiedOn(LocalDate.parse(r.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE));
+                }
                 return aq;
             }).toList();
             repository.saveAll(toUpdate);

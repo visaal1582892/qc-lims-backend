@@ -126,8 +126,15 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
 
         // For Deactivate, only ID + Action are needed — no field validation
         if (!action.equals("D")) {
-            if (row.name() == null || row.name().isBlank()) {
-                errors.add("Name is required");
+            // For Add: all fields required
+            // For Update: at least one field must be provided
+            if (action.equals("A")) {
+                if (row.name() == null || row.name().isBlank()) {
+                    errors.add("Name is required");
+                }
+            } else {
+                ExcelUtils.validateUpdateHasFields(row, errors,
+                        "Name", row.name(), "Sub Name", row.subName());
             }
         }
 
@@ -163,8 +170,12 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
         if (!updates.isEmpty()) {
             List<MetricUnit> toUpdate = updates.stream().map(r -> {
                 MetricUnit existing = existingById.get(r.id());
-                existing.setName(r.name());
-                existing.setSubName(r.subName());
+                if (r.name() != null && !r.name().isBlank()) {
+                    existing.setName(r.name());
+                }
+                if (r.subName() != null && !r.subName().isBlank()) {
+                    existing.setSubName(r.subName());
+                }
                 return existing;
             }).toList();
             repository.saveAll(toUpdate);

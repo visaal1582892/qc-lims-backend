@@ -220,6 +220,34 @@ public final class ExcelUtils {
         }
     }
 
+    /**
+     * Validate that an Update row has at least one non-blank field to update.
+     * Pass varargs of field labels + values — e.g. validateUpdateHasFields(row, errors,
+     *     "Name", name, "Sub Name", subName).
+     */
+    public static void validateUpdateHasFields(BulkRow row, List<String> errors, String... fieldLabelsAndValues) {
+        String action = row.action().toUpperCase();
+        if (!action.equals("U")) {
+            return;
+        }
+        boolean hasValue = false;
+        for (int i = 1; i < fieldLabelsAndValues.length; i += 2) {
+            String val = fieldLabelsAndValues[i];
+            if (val != null && !val.isBlank()) {
+                hasValue = true;
+                break;
+            }
+        }
+        if (!hasValue) {
+            String labels = new StringBuilder();
+            for (int i = 0; i < fieldLabelsAndValues.length; i += 2) {
+                if (labels.length() > 0) labels.append(", ");
+                labels.append(fieldLabelsAndValues[i]);
+            }
+            errors.add("At least one field must be provided for Update (e.g., " + labels + ")");
+        }
+    }
+
     // ------------------------------------------------------------------
     // 4. Row iteration helpers
     // ------------------------------------------------------------------
