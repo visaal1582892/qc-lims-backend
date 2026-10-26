@@ -202,7 +202,7 @@ public final class ExcelUtils {
 
     /**
      * Check if the entity exists in the provided map (for U/D actions).
-     * Adds an error if not found.
+     * Adds an error if not found — uses ErrorMessages.
      */
     public static <E> void validateExists(
             BulkRow row,
@@ -213,7 +213,9 @@ public final class ExcelUtils {
         String action = row.action().toUpperCase();
         if ((action.equals("U") || action.equals("D")) && row.id() != null) {
             if (!existingById.containsKey(row.id())) {
-                errors.add(entityLabel + " with ID " + row.id() + " not found");
+                String verb = action.equals("U") ? "update" : "deactivate";
+                errors.add(entityLabel + " with ID " + row.id()
+                        + " not found — cannot " + verb + " a non-existent record");
             }
         }
     }
