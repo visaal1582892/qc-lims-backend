@@ -40,17 +40,23 @@ public class TestParameterController {
     @PreAuthorize("hasAuthority('" + Rights.ROLE_TEST_PARAMETER_UPLOAD + "')")
     public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file,
                                          @RequestHeader("X-Employee-ID") String employeeId) {
-        BulkUploadResponse response = testParameterService.uploadExcel(file, employeeId);
+        BulkUploadResponse result = testParameterService.uploadExcel(file, employeeId);
 
-        if (response.success()) {
-            return ResponseEntity.ok(response);
+        if (result.success()) {
+            return ResponseEntity.ok(result);
         }
 
-        return ResponseEntity.badRequest()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"test_parameter_errors.xlsx\"")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(response);
+        byte[] errorFile = result.errorFileBytes();
+        if (errorFile != null) {
+            return ResponseEntity.badRequest()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"test_parameter_errors.xlsx\"")
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(errorFile);
+        }
+
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/template")

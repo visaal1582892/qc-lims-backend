@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/masters/metric-units")
@@ -41,21 +40,25 @@ public class MetricUnitController {
     @PreAuthorize("hasAuthority('" + Rights.ROLE_METRIC_UNIT_UPLOAD + "')")
     public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file,
                                          @RequestHeader("X-Employee-ID") String employeeId) {
-        BulkUploadResponse response = metricUnitService.uploadExcel(file, employeeId);
+        BulkUploadResponse result = metricUnitService.uploadExcel(file, employeeId);
 
-        if (response.success()) {
-            return ResponseEntity.ok(response);
+        if (result.success()) {
+            return ResponseEntity.ok(result);
         }
 
-        try {
+        // On validation failure, return the error file bytes directly (not the DTO)
+        byte[] errorFile = result.errorFileBytes();
+        if (errorFile != null) {
             return ResponseEntity.badRequest()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             "attachment; filename=\"metric_unit_errors.xlsx\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(response);
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(errorFile);
         }
+
+        // No error file — return JSON error
+        return ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/template")
