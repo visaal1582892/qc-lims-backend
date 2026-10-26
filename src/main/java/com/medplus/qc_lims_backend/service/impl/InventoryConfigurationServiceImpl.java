@@ -111,17 +111,19 @@ public class InventoryConfigurationServiceImpl implements InventoryConfiguration
             int rowNum = 1;
             for (Row row : sheet) {
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
-                String idStr = ExcelUtils.getCellString(row, 0);
-                if (idStr != null && !idStr.isBlank()) {
-                    Long id = ExcelUtils.getCellLong(row, 0);
-                    String productId = ExcelUtils.getCellString(row, 1);
-                    Long parameterId = ExcelUtils.getCellLong(row, 2);
-                    Integer countNeeded = ExcelUtils.getCellInt(row, 3);
-                    String action = ExcelUtils.getCellString(row, 4);
-                    if (action != null && !action.isBlank()) {
-                        rows.add(new InventoryConfigurationBulkRow(id, action.trim(), productId, parameterId, countNeeded, rowNum));
-                    }
+                // Skip completely blank rows
+                String action = ExcelUtils.getCellString(row, 4);
+                String productId = ExcelUtils.getCellString(row, 1);
+                String parameterIdStr = ExcelUtils.getCellString(row, 2);
+                String countStr = ExcelUtils.getCellString(row, 3);
+                if (action == null && productId == null && parameterIdStr == null && countStr == null) {
+                    rowNum++;
+                    continue;
                 }
+                Long id = ExcelUtils.getCellLong(row, 0);
+                Long parameterId = ExcelUtils.getCellLong(row, 2);
+                Integer countNeeded = ExcelUtils.getCellInt(row, 3);
+                rows.add(new InventoryConfigurationBulkRow(id, action != null ? action.trim() : "", productId, parameterId, countNeeded, rowNum));
                 rowNum++;
             }
         } catch (IOException e) {

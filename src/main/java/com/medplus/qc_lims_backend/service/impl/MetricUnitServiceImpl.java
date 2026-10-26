@@ -97,16 +97,16 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
             int rowNum = 1;
             for (Row row : sheet) {
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
-                String idStr = ExcelUtils.getCellString(row, 0);
-                if (idStr != null && !idStr.isBlank()) {
-                    Long id = ExcelUtils.getCellLong(row, 0);
-                    String name = ExcelUtils.getCellString(row, 1);
-                    String subName = ExcelUtils.getCellString(row, 2);
-                    String action = ExcelUtils.getCellString(row, 3);
-                    if (action != null && !action.isBlank()) {
-                        rows.add(new MetricUnitBulkRow(id, action.trim(), name, subName, rowNum));
-                    }
+                // Skip completely blank rows
+                String action = ExcelUtils.getCellString(row, 3);
+                String name = ExcelUtils.getCellString(row, 1);
+                String subName = ExcelUtils.getCellString(row, 2);
+                if (action == null && name == null && subName == null) {
+                    rowNum++;
+                    continue;
                 }
+                Long id = ExcelUtils.getCellLong(row, 0);
+                rows.add(new MetricUnitBulkRow(id, action != null ? action.trim() : "", name, subName, rowNum));
                 rowNum++;
             }
         } catch (IOException e) {
