@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class InventoryConfigurationServiceImpl implements InventoryConfigurationServiceInterface {
 
     private static final int MAX_ROWS = 1000;
-    private static final String[] HEADERS = {"Action (A/U/D)", "ID", "Product ID", "Parameter ID", "Count Needed"};
+    private static final String[] HEADERS = {"ID", "Product ID", "Parameter ID", "Count Needed", "Action (A/U/D)"};
 
     private final InventoryConfigurationRepository repository;
     private final TestParameterRepository parameterRepository;
@@ -111,13 +111,16 @@ public class InventoryConfigurationServiceImpl implements InventoryConfiguration
             int rowNum = 1;
             for (Row row : sheet) {
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
-                String action = ExcelUtils.getCellString(row, 0);
-                if (action != null && !action.isBlank()) {
-                    Long id = ExcelUtils.getCellLong(row, 1);
-                    String productId = ExcelUtils.getCellString(row, 2);
-                    Long parameterId = ExcelUtils.getCellLong(row, 3);
-                    Integer countNeeded = ExcelUtils.getCellInt(row, 4);
-                    rows.add(new InventoryConfigurationBulkRow(id, action.trim(), productId, parameterId, countNeeded, rowNum));
+                String idStr = ExcelUtils.getCellString(row, 0);
+                if (idStr != null && !idStr.isBlank()) {
+                    Long id = ExcelUtils.getCellLong(row, 0);
+                    String productId = ExcelUtils.getCellString(row, 1);
+                    Long parameterId = ExcelUtils.getCellLong(row, 2);
+                    Integer countNeeded = ExcelUtils.getCellInt(row, 3);
+                    String action = ExcelUtils.getCellString(row, 4);
+                    if (action != null && !action.isBlank()) {
+                        rows.add(new InventoryConfigurationBulkRow(id, action.trim(), productId, parameterId, countNeeded, rowNum));
+                    }
                 }
                 rowNum++;
             }

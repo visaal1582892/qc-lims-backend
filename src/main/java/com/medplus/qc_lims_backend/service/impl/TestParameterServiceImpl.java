@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class TestParameterServiceImpl implements TestParameterServiceInterface {
 
     private static final int MAX_ROWS = 1000;
-    private static final String[] HEADERS = {"Action (A/U/D)", "ID", "Name", "Result Type (TEXTUAL/METRICS)", "Metric Unit ID"};
+    private static final String[] HEADERS = {"ID", "Name", "Result Type (TEXTUAL/METRICS)", "Metric Unit ID", "Action (A/U/D)"};
 
     private final TestParameterRepository repository;
     private final MetricUnitRepository metricUnitRepository;
@@ -107,13 +107,16 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
             int rowNum = 1;
             for (Row row : sheet) {
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
-                String action = ExcelUtils.getCellString(row, 0);
-                if (action != null && !action.isBlank()) {
-                    Long id = ExcelUtils.getCellLong(row, 1);
-                    String name = ExcelUtils.getCellString(row, 2);
-                    String resultType = ExcelUtils.getCellString(row, 3);
-                    Long metricUnitId = ExcelUtils.getCellLong(row, 4);
-                    rows.add(new TestParameterBulkRow(id, action.trim(), name, resultType, metricUnitId, rowNum));
+                String idStr = ExcelUtils.getCellString(row, 0);
+                if (idStr != null && !idStr.isBlank()) {
+                    Long id = ExcelUtils.getCellLong(row, 0);
+                    String name = ExcelUtils.getCellString(row, 1);
+                    String resultType = ExcelUtils.getCellString(row, 2);
+                    Long metricUnitId = ExcelUtils.getCellLong(row, 3);
+                    String action = ExcelUtils.getCellString(row, 4);
+                    if (action != null && !action.isBlank()) {
+                        rows.add(new TestParameterBulkRow(id, action.trim(), name, resultType, metricUnitId, rowNum));
+                    }
                 }
                 rowNum++;
             }

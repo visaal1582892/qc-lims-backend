@@ -98,12 +98,18 @@ public final class ExcelUtils {
      * Generate an error-report Excel workbook from the parsed rows and the
      * validation-errors map. The last column is always "Error Messages".
      *
+     * Column order follows the {@code headers} array. The writer lambda
+     * populates {@code actionCol}, {@code idCol}, and any additional columns
+     * at {@code startCol}.
+     *
      * @param sheetName   visible sheet label
-     * @param headers     column headers (without the "Error Messages" suffix — it is appended)
+     * @param headers     column headers (the first entry is "ID", the last
+     *                    entry is "Action (A/U/D)" — error report mirrors
+     *                    this order; "Error Messages" is appended)
      * @param rows        parsed BulkRow instances
      * @param errors      rowNumber → error list mapping
-     * @param cellWriters lambda that writes domain-specific cells (col 0 = Action, col 1 = ID already written)
-     * @return            byte[] of the error report
+     * @param cellWriters lambda that writes domain-specific cells starting
+     *                    at {@code startCol} (which is after ID and Action)
      */
     public static byte[] createErrorReport(
             String sheetName,
@@ -121,16 +127,21 @@ public final class ExcelUtils {
             }
             headerRow.createCell(numCols - 1).setCellValue("Error Messages");
 
+            // headers[0] = ID, headers[last] = Action; data columns are in between
+            int idCol = 0;
+            int actionCol = headers.length - 1;
+
             int rowNum = 1;
             for (BulkRow bulkRow : rows) {
                 Row r = sheet.createRow(rowNum++);
-                // Common columns: Action, ID
-                r.createCell(0).setCellValue(bulkRow.action());
+                // ID column (first)
                 if (bulkRow.id() != null) {
-                    r.createCell(1).setCellValue(bulkRow.id().doubleValue());
+                    r.createCell(idCol).setCellValue(bulkRow.id().doubleValue());
                 }
-                // Domain-specific columns
-                cellWriter.writeCells(r, bulkRow, 2);
+                // Action column (last, just before Error Messages)
+                r.createCell(actionCol).setCellValue(bulkRow.action());
+                // Domain-specific columns (between ID and Action)
+                cellWriter.writeCells(r, bulkRow, 1);
 
                 // Error messages column
                 List<String> rowErrors = errors.get(bulkRow.rowNumber());
@@ -150,11 +161,11 @@ public final class ExcelUtils {
 
     /**
      * Functional interface for writing domain-specific cells in the error report.
-     * Called after Action (col 0) and ID (col 1) are already written.
+     * Called after ID (col 0) and Action (col headers.length-1) are already written.
      *
      * @param row       the POI Row being written
      * @param bulkRow   the parsed BulkRow for this row
-     * @param startCol  the column index to start writing domain-specific cells
+     * @param startCol  the column index to start writing domain-specific cells (after ID)
      */
     @FunctionalInterface
     public interface RowCellWriter {

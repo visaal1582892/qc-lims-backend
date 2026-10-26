@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
 
     private static final int MAX_ROWS = 1000;
-    private static final String[] HEADERS = {"Action (A/U/D)", "ID", "Name", "Sub Name"};
+    private static final String[] HEADERS = {"ID", "Name", "Sub Name", "Action (A/U/D)"};
 
     private final MetricUnitRepository repository;
 
@@ -97,12 +97,15 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
             int rowNum = 1;
             for (Row row : sheet) {
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
-                String action = ExcelUtils.getCellString(row, 0);
-                if (action != null && !action.isBlank()) {
-                    Long id = ExcelUtils.getCellLong(row, 1);
-                    String name = ExcelUtils.getCellString(row, 2);
-                    String subName = ExcelUtils.getCellString(row, 3);
-                    rows.add(new MetricUnitBulkRow(id, action.trim(), name, subName, rowNum));
+                String idStr = ExcelUtils.getCellString(row, 0);
+                if (idStr != null && !idStr.isBlank()) {
+                    Long id = ExcelUtils.getCellLong(row, 0);
+                    String name = ExcelUtils.getCellString(row, 1);
+                    String subName = ExcelUtils.getCellString(row, 2);
+                    String action = ExcelUtils.getCellString(row, 3);
+                    if (action != null && !action.isBlank()) {
+                        rows.add(new MetricUnitBulkRow(id, action.trim(), name, subName, rowNum));
+                    }
                 }
                 rowNum++;
             }
