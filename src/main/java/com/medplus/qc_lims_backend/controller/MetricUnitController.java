@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,27 +37,12 @@ public class MetricUnitController {
 
     @PostMapping("/upload")
     @PreAuthorize("hasAuthority('" + Rights.ROLE_METRIC_UNIT_UPLOAD + "')")
-    public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<BulkUploadResponse> uploadExcel(@RequestParam("file") MultipartFile file,
                                          @RequestHeader("X-Employee-ID") String employeeId) {
         BulkUploadResponse result = metricUnitService.uploadExcel(file, employeeId);
-
-        if (result.success()) {
-            return ResponseEntity.ok(result);
-        }
-
-        // On validation failure, return the error file bytes directly (not the DTO)
-        byte[] errorFile = result.errorFileBytes();
-        if (errorFile != null) {
-            return ResponseEntity.badRequest()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"metric_unit_errors.xlsx\"")
-                    .contentType(MediaType.parseMediaType(
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .body(errorFile);
-        }
-
-        // No error file — return JSON error
-        return ResponseEntity.badRequest().body(result);
+        return result.success()
+                ? ResponseEntity.ok(result)
+                : ResponseEntity.badRequest().body(result);
     }
 
     @GetMapping("/template")
