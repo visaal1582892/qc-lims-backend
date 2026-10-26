@@ -239,12 +239,12 @@ public final class ExcelUtils {
             }
         }
         if (!hasValue) {
-            String labels = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < fieldLabelsAndValues.length; i += 2) {
-                if (labels.length() > 0) labels.append(", ");
-                labels.append(fieldLabelsAndValues[i]);
+                if (sb.length() > 0) sb.append(", ");
+                sb.append(fieldLabelsAndValues[i]);
             }
-            errors.add("At least one field must be provided for Update (e.g., " + labels + ")");
+            errors.add("At least one field must be provided for Update (e.g., " + sb + ")");
         }
     }
 
