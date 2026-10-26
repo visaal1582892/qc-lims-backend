@@ -134,7 +134,7 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
                                      Map<Long, MetricUnit> metricUnits) {
         List<String> errors = new ArrayList<>();
         ExcelUtils.validateActionAndId(row, errors);
-        if (errors.size() > 1) return errors;
+        if (!errors.isEmpty()) return errors;
 
         String action = row.action().toUpperCase();
 

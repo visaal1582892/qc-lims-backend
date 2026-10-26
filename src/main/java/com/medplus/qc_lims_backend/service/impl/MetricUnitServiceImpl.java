@@ -120,7 +120,7 @@ public class MetricUnitServiceImpl implements MetricUnitServiceInterface {
     private List<String> validateRow(MetricUnitBulkRow row, Map<Long, MetricUnit> existing) {
         List<String> errors = new ArrayList<>();
         ExcelUtils.validateActionAndId(row, errors);
-        if (errors.size() > 1) return errors; // action is invalid, skip rest
+        if (!errors.isEmpty()) return errors;
 
         String action = row.action().toUpperCase();
 
