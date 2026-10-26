@@ -40,9 +40,7 @@ public class MetricUnitController {
     public ResponseEntity<BulkUploadResponse> uploadExcel(@RequestParam("file") MultipartFile file,
                                          @RequestHeader("X-Employee-ID") String employeeId) {
         BulkUploadResponse result = metricUnitService.uploadExcel(file, employeeId);
-        return result.success()
-                ? ResponseEntity.ok(result)
-                : ResponseEntity.badRequest().body(result);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/template")
