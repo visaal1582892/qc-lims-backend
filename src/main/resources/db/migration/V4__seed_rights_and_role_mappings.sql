@@ -37,7 +37,7 @@ INSERT INTO `rights` (`right_id`, `right_name`, `description`, `status`) VALUES
 ('ROLE_QUALIFICATION_UPLOAD',     'Analyst Qualification Upload','Upload analyst qualifications via Excel',                'ACTIVE'),
 
 ('ROLE_INVENTORY_CONFIG_READ',    'Inventory Config Read',    'View QC inventory configurations',                          'ACTIVE'),
-('ROLE_INVENTORY_CONFIG_UPLOAD',  'Inventory Config Upload',  'Upload QC inventory configurations via Excel',              'ACTIVE'
+('ROLE_INVENTORY_CONFIG_UPLOAD',  'Inventory Config Upload',  'Upload QC inventory configurations via Excel',              'ACTIVE')
 ON DUPLICATE KEY UPDATE `right_name` = VALUES(`right_name`);
 
 -- ---------------------------
