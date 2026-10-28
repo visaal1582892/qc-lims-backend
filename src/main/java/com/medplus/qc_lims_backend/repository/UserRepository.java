@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import com.medplus.qc_lims_backend.util.SecurityUtils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -89,7 +90,17 @@ public class UserRepository {
         return kh.getKey() != null ? kh.getKey().longValue() : null;
     }
 
+    public void logUserBeforeUpdate(Long userId, String createdBy) {
+        jdbc.update("""
+                INSERT INTO users_log (user_id, employee_id, full_name, password_hash, status, created_by)
+                SELECT user_id, employee_id, full_name, password_hash, status, :createdBy
+                FROM users WHERE user_id = :id
+                """,
+                new MapSqlParameterSource("id", userId).addValue("createdBy", createdBy != null ? createdBy : "SYSTEM"));
+    }
+
     public int update(User user) {
+        logUserBeforeUpdate(user.getUserId(), SecurityUtils.getCurrentEmployeeId());
         return jdbc.update("""
                 UPDATE users SET employee_id = :employeeId, full_name = :fullName, status = :status
                 WHERE user_id = :id
@@ -102,18 +113,21 @@ public class UserRepository {
     }
 
     public int updatePassword(Long userId, String passwordHash) {
+        logUserBeforeUpdate(userId, SecurityUtils.getCurrentEmployeeId());
         return jdbc.update(
                 "UPDATE users SET password_hash = :hash WHERE user_id = :id",
                 new MapSqlParameterSource("hash", passwordHash).addValue("id", userId));
     }
 
     public int updateStatus(Long userId, RecordStatus status) {
+        logUserBeforeUpdate(userId, SecurityUtils.getCurrentEmployeeId());
         return jdbc.update(
                 "UPDATE users SET status = :status WHERE user_id = :id",
                 new MapSqlParameterSource("status", status.name()).addValue("id", userId));
     }
 
     public int delete(Long userId) {
+        logUserBeforeUpdate(userId, SecurityUtils.getCurrentEmployeeId());
         return jdbc.update("DELETE FROM users WHERE user_id = :id",
                 new MapSqlParameterSource("id", userId));
     }
@@ -129,6 +143,14 @@ public class UserRepository {
     }
 
     public void replaceUserRoles(long userId, List<Long> roleIds) {
+        String createdBy = SecurityUtils.getCurrentEmployeeId();
+        jdbc.update("""
+                INSERT INTO user_roles_log (user_id, role_id, created_by)
+                SELECT user_id, role_id, :createdBy
+                FROM user_roles WHERE user_id = :uid
+                """,
+                new MapSqlParameterSource("uid", userId).addValue("createdBy", createdBy));
+
         jdbc.update("DELETE FROM user_roles WHERE user_id = :uid",
                 new MapSqlParameterSource("uid", userId));
         insertUserRoles(userId, roleIds);

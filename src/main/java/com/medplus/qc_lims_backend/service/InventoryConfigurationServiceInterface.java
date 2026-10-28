@@ -2,13 +2,17 @@ package com.medplus.qc_lims_backend.service;
 
 import com.medplus.qc_lims_backend.domain.InventoryConfiguration;
 import com.medplus.qc_lims_backend.dto.BulkUploadResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.medplus.qc_lims_backend.domain.criteria.InventoryConfigSearchCriteria;
+import com.medplus.qc_lims_backend.dto.PagedResponse;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface InventoryConfigurationServiceInterface {
 
-    Page<InventoryConfiguration> findAll(String search, boolean includeInactive, Pageable pageable);
+    PagedResponse<InventoryConfiguration> getPagedInventoryConfig(InventoryConfigSearchCriteria criteria);
+
+    List<InventoryConfiguration> findList(InventoryConfigSearchCriteria criteria, int maxResults);
 
     BulkUploadResponse uploadExcel(MultipartFile file, String employeeId);
 

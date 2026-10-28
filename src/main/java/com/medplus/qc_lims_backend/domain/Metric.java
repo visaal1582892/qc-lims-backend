@@ -5,27 +5,27 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Metric Unit Master — goal.md §1.2.
+ * Metric Master (formerly Metric Unit Master).
  */
 @Entity
-@Table(name = "metric_unit_master")
+@Table(name = "metric_master")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class MetricUnit extends AuditEntity {
+public class Metric extends AuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "metric_unit_id")
+    @Column(name = "metric_id")
     private Long id;
 
-    @Column(nullable = false, length = 100)
-    private String name;
+    @Column(name = "metric_name", nullable = false, length = 100)
+    private String metricName;
 
-    @Column(length = 100)
-    private String subName;
+    @Column(name = "unit", length = 100)
+    private String unit;
 
     @Column(nullable = false, length = 1)
     @Builder.Default

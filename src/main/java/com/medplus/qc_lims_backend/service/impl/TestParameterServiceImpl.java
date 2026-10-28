@@ -1,28 +1,25 @@
 package com.medplus.qc_lims_backend.service.impl;
 
-import com.medplus.qc_lims_backend.domain.MetricUnit;
 import com.medplus.qc_lims_backend.domain.TestParameter;
 import com.medplus.qc_lims_backend.dto.BulkUploadResponse;
 import com.medplus.qc_lims_backend.dto.TestParameterBulkRow;
-import com.medplus.qc_lims_backend.enums.ErrorMessages;
 import com.medplus.qc_lims_backend.enums.MasterStatus;
 import com.medplus.qc_lims_backend.exception.BadRequestException;
-import com.medplus.qc_lims_backend.repository.MetricUnitRepository;
 import com.medplus.qc_lims_backend.repository.TestParameterRepository;
 import com.medplus.qc_lims_backend.service.TestParameterServiceInterface;
-import com.medplus.qc_lims_backend.specifications.MasterSpecifications;
 import com.medplus.qc_lims_backend.util.ExcelUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.medplus.qc_lims_backend.dao.TestParameterDao;
+import com.medplus.qc_lims_backend.domain.criteria.TestParameterSearchCriteria;
+import com.medplus.qc_lims_backend.dto.PagedResponse;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,24 +31,42 @@ import java.util.stream.Collectors;
 public class TestParameterServiceImpl implements TestParameterServiceInterface {
 
     private static final int MAX_ROWS = 1000;
-    private static final String[] HEADERS = {"ID", "Name", "Result Type (TEXTUAL/METRICS)", "Metric Unit ID", "Action (A/U/D)"};
+    private static final String[] HEADERS = {"ID", "Name", "Action (A/U/D)"};
 
     private final TestParameterRepository repository;
-    private final MetricUnitRepository metricUnitRepository;
+    private final TestParameterDao testParameterDao;
 
     public TestParameterServiceImpl(TestParameterRepository repository,
-                                    MetricUnitRepository metricUnitRepository) {
+                                    TestParameterDao testParameterDao) {
         this.repository = repository;
-        this.metricUnitRepository = metricUnitRepository;
+        this.testParameterDao = testParameterDao;
     }
 
     @Override
-    public Page<TestParameter> findAll(String search, boolean includeInactive, Pageable pageable) {
-        Specification<TestParameter> spec = MasterSpecifications.nameContains(search);
-        if (includeInactive) {
-            return repository.findAll(spec, pageable);
+    @Transactional(readOnly = true)
+    public PagedResponse<TestParameter> getPagedTestParameters(TestParameterSearchCriteria criteria) {
+        if (criteria == null) {
+            criteria = new TestParameterSearchCriteria();
         }
-        return repository.findByStatus(MasterStatus.ACTIVE, spec, pageable);
+        long total = testParameterDao.count(criteria);
+        if (total == 0) {
+            return PagedResponse.of(List.of(), 0, criteria.getPage(), criteria.getSize());
+        }
+
+        int offset = criteria.getOffset();
+        List<Long> ids = testParameterDao.getPageIds(criteria, offset, criteria.getSize());
+        List<TestParameter> content = testParameterDao.getEntitiesByIds(ids);
+
+        return PagedResponse.of(content, total, criteria.getPage(), criteria.getSize());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TestParameter> findList(TestParameterSearchCriteria criteria, int maxResults) {
+        if (criteria == null) {
+            criteria = new TestParameterSearchCriteria();
+        }
+        return testParameterDao.findList(criteria, maxResults);
     }
 
     @Override
@@ -62,14 +77,13 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
         List<TestParameterBulkRow> rows = parseFile(file);
         ExcelUtils.validateRowCount(rows, MAX_ROWS);
 
-        Map<Long, TestParameter> existingById = repository.findAll().stream()
-                .collect(Collectors.toMap(TestParameter::getId, tp -> tp));
-        Map<Long, MetricUnit> metricUnitsById = metricUnitRepository.findAll().stream()
-                .collect(Collectors.toMap(MetricUnit::getId, mu -> mu));
+        List<Long> ids = rows.stream().map(TestParameterBulkRow::id).filter(Objects::nonNull).distinct().toList();
+        Map<Long, TestParameter> existingById = ids.isEmpty() ? Map.of() :
+                repository.findAllById(ids).stream().collect(Collectors.toMap(TestParameter::getId, tp -> tp));
 
         Map<Integer, List<String>> errors = new ConcurrentHashMap<>();
         rows.parallelStream().forEach(row -> {
-            List<String> rowErrors = validateRow(row, existingById, metricUnitsById);
+            List<String> rowErrors = validateRow(row, existingById);
             if (!rowErrors.isEmpty()) {
                 errors.put(row.rowNumber(), rowErrors);
             }
@@ -81,16 +95,12 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
                     Arrays.copyOf(HEADERS, HEADERS.length),
                     rows, errors, (r, bulkRow, col) -> {
                         TestParameterBulkRow row = (TestParameterBulkRow) bulkRow;
-                        r.createCell(col++).setCellValue(row.name() != null ? row.name() : "");
-                        r.createCell(col++).setCellValue(row.resultType() != null ? row.resultType() : "");
-                        if (row.metricUnitId() != null) {
-                            r.createCell(col).setCellValue(row.metricUnitId().doubleValue());
-                        }
+                        r.createCell(col).setCellValue(row.name() != null ? row.name() : "");
                     });
             return BulkUploadResponse.validationFailureWithFile(errors, errorFile);
         }
 
-        return executeBulk(rows, existingById, metricUnitsById, employeeId);
+        return executeBulk(rows, existingById, employeeId);
     }
 
     @Override
@@ -110,17 +120,14 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
                 if (first) { first = false; rowNum++; continue; } // skip header row
                 if (ExcelUtils.isLastRow(rowNum, sheet)) break;
                 // Skip completely blank rows
-                String action = ExcelUtils.getCellString(row, 4);
+                String action = ExcelUtils.getCellString(row, 2);
                 String name = ExcelUtils.getCellString(row, 1);
-                String resultType = ExcelUtils.getCellString(row, 2);
-                String metricUnitIdStr = ExcelUtils.getCellString(row, 3);
-                if (action == null && name == null && resultType == null && metricUnitIdStr == null) {
+                if (action == null && name == null) {
                     rowNum++;
                     continue;
                 }
                 Long id = ExcelUtils.getCellLong(row, 0);
-                Long metricUnitId = ExcelUtils.getCellLong(row, 3);
-                rows.add(new TestParameterBulkRow(id, action != null ? action.trim() : "", name, resultType, metricUnitId, rowNum));
+                rows.add(new TestParameterBulkRow(id, action != null ? action.trim() : "", name, rowNum));
                 rowNum++;
             }
         } catch (IOException e) {
@@ -130,8 +137,7 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
     }
 
     private List<String> validateRow(TestParameterBulkRow row,
-                                     Map<Long, TestParameter> existing,
-                                     Map<Long, MetricUnit> metricUnits) {
+                                     Map<Long, TestParameter> existing) {
         List<String> errors = new ArrayList<>();
         ExcelUtils.validateActionAndId(row, errors);
         if (!errors.isEmpty()) return errors;
@@ -144,28 +150,13 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
                 if (row.name() == null || row.name().isBlank()) {
                     errors.add("Name is required");
                 }
-                if (row.resultType() == null || !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
-                    errors.add("Result type must be TEXTUAL or METRICS");
-                }
-                if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
-                    errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
-                }
             } else {
-                // Update: at least one field required; validate provided fields
-                if (row.resultType() != null && !row.resultType().isBlank()
-                        && !row.resultType().matches("(?i)TEXTUAL|METRICS")) {
-                    errors.add("Result type must be TEXTUAL or METRICS");
-                }
-                if (row.metricUnitId() != null && !metricUnits.containsKey(row.metricUnitId())) {
-                    errors.add(ErrorMessages.ERR_INVALID_METRIC_UNIT.getMessage());
-                }
-                ExcelUtils.validateUpdateHasFields(row, errors,
-                        "Name", row.name(), "Result Type", row.resultType(),
-                        "Metric Unit ID", String.valueOf(row.metricUnitId()));
+                // Update: at least one field required
+                ExcelUtils.validateUpdateHasFields(row, errors, "Name", row.name());
             }
         }
 
-        ExcelUtils.validateExists(row, existing, errors, "Test Parameter");
+        ExcelUtils.validateExists(row, existing, TestParameter::getStatus, errors, "Test Parameter");
 
         return errors;
     }
@@ -173,7 +164,6 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
     private BulkUploadResponse executeBulk(
             List<TestParameterBulkRow> rows,
             Map<Long, TestParameter> existingById,
-            Map<Long, MetricUnit> metricUnitsById,
             String employeeId) {
 
         Map<String, List<TestParameterBulkRow>> grouped = rows.stream()
@@ -183,32 +173,25 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
 
         List<TestParameterBulkRow> adds = grouped.getOrDefault("A", List.of());
         if (!adds.isEmpty()) {
-            List<TestParameter> toSave = adds.stream().map(r -> {
-                MetricUnit mu = r.metricUnitId() != null ? metricUnitsById.get(r.metricUnitId()) : null;
-                return TestParameter.builder()
+            List<TestParameter> toSave = adds.stream().map(r ->
+                TestParameter.builder()
                         .name(r.name())
-                        .resultType(r.resultType())
-                        .metricUnit(mu)
                         .status(MasterStatus.ACTIVE)
-                        .build();
-            }).toList();
+                        .build()
+            ).toList();
             repository.saveAll(toSave);
             added = toSave.size();
         }
 
         List<TestParameterBulkRow> updates = grouped.getOrDefault("U", List.of());
         if (!updates.isEmpty()) {
+            List<Long> updateIds = updates.stream().map(TestParameterBulkRow::id).toList();
+            repository.logBeforeUpdate(updateIds, employeeId);
+
             List<TestParameter> toUpdate = updates.stream().map(r -> {
                 TestParameter tp = existingById.get(r.id());
                 if (r.name() != null && !r.name().isBlank()) {
                     tp.setName(r.name());
-                }
-                if (r.resultType() != null && !r.resultType().isBlank()) {
-                    tp.setResultType(r.resultType());
-                }
-                if (r.metricUnitId() != null) {
-                    MetricUnit mu = metricUnitsById.get(r.metricUnitId());
-                    tp.setMetricUnit(mu);
                 }
                 return tp;
             }).toList();
@@ -219,6 +202,7 @@ public class TestParameterServiceImpl implements TestParameterServiceInterface {
         List<TestParameterBulkRow> deletes = grouped.getOrDefault("D", List.of());
         if (!deletes.isEmpty()) {
             List<Long> ids = deletes.stream().map(TestParameterBulkRow::id).toList();
+            repository.logBeforeUpdate(ids, employeeId);
             repository.bulkDeactivate(ids, MasterStatus.INACTIVE, employeeId);
             deactivated = ids.size();
         }

@@ -8,8 +8,8 @@ import com.medplus.qc_lims_backend.dto.UpdateUserRequest;
 import com.medplus.qc_lims_backend.enums.RecordStatus;
 import com.medplus.qc_lims_backend.security.Rights;
 import com.medplus.qc_lims_backend.service.UserManagementServiceInterface;
+import com.medplus.qc_lims_backend.dto.PagedResponse;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,10 +32,10 @@ public class AdminController {
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
-    public ResponseEntity<Page<User>> getUsers(
+    public ResponseEntity<PagedResponse<User>> getUsers(
             @RequestParam(defaultValue = "false") boolean includeInactive,
             Pageable pageable) {
-        return ResponseEntity.ok(userManagementService.findAll(includeInactive, pageable));
+        return ResponseEntity.ok(PagedResponse.from(userManagementService.findAll(includeInactive, pageable)));
     }
 
     @PostMapping("/users")
@@ -88,10 +88,10 @@ public class AdminController {
 
     @GetMapping("/roles")
     @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
-    public ResponseEntity<Page<Role>> getRoles(
+    public ResponseEntity<PagedResponse<Role>> getRoles(
             @RequestParam(defaultValue = "false") boolean includeInactive,
             Pageable pageable) {
-        return ResponseEntity.ok(userManagementService.findAllRoles(includeInactive, pageable));
+        return ResponseEntity.ok(PagedResponse.from(userManagementService.findAllRoles(includeInactive, pageable)));
     }
 
     @PutMapping("/roles/{roleId}/rights")
@@ -105,9 +105,9 @@ public class AdminController {
 
     @GetMapping("/rights")
     @PreAuthorize("hasAuthority('" + Rights.ROLE_SYSTEM_ADMIN + "')")
-    public ResponseEntity<Page<Right>> getRights(
+    public ResponseEntity<PagedResponse<Right>> getRights(
             @RequestParam(defaultValue = "false") boolean includeInactive,
             Pageable pageable) {
-        return ResponseEntity.ok(userManagementService.findAllRights(includeInactive, pageable));
+        return ResponseEntity.ok(PagedResponse.from(userManagementService.findAllRights(includeInactive, pageable)));
     }
 }

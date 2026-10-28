@@ -27,8 +27,8 @@ INSERT INTO `rights` (`right_id`, `right_name`, `description`, `status`) VALUES
 ('ROLE_MASTER_DATA_UPDATE',       'Master Data Update',       'Update all master data entities',                           'ACTIVE'),
 ('ROLE_MASTER_DATA_DELETE',       'Master Data Delete',       'Delete (deactivate) all master data entities',              'ACTIVE'),
 
-('ROLE_METRIC_UNIT_READ',         'Metric Unit Read',         'View metric units',                                         'ACTIVE'),
-('ROLE_METRIC_UNIT_UPLOAD',       'Metric Unit Upload',       'Upload metric units via Excel',                             'ACTIVE'),
+('ROLE_METRIC_READ',         'Metric Read',         'View metrics',                                         'ACTIVE'),
+('ROLE_METRIC_UPLOAD',       'Metric Upload',       'Upload metrics via Excel',                             'ACTIVE'),
 
 ('ROLE_TEST_PARAMETER_READ',      'Test Parameter Read',      'View test parameters',                                      'ACTIVE'),
 ('ROLE_TEST_PARAMETER_UPLOAD',    'Test Parameter Upload',    'Upload test parameters via Excel',                          'ACTIVE'),

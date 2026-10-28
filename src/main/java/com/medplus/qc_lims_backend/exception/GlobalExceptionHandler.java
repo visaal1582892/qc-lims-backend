@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleServiceUnavailable(ServiceUnavailableException ex) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
     @ExceptionHandler({ BadCredentialsException.class, UsernameNotFoundException.class })
     public ResponseEntity<Map<String, Object>> handleAuth(Exception ex) {
         return build(HttpStatus.UNAUTHORIZED, "Invalid email or password");

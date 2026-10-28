@@ -10,9 +10,7 @@ import java.time.LocalDate;
  * Analyst Qualification Master — goal.md §1.4.
  */
 @Entity
-@Table(name = "analyst_qualification_master", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_emp_param_status", columnNames = {"employee_id", "param_id", "status"})
-})
+@Table(name = "analyst_qualification_master")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -10,16 +10,12 @@ import com.medplus.qc_lims_backend.exception.BadRequestException;
 import com.medplus.qc_lims_backend.repository.AnalystQualificationRepository;
 import com.medplus.qc_lims_backend.repository.TestParameterRepository;
 import com.medplus.qc_lims_backend.service.AnalystQualificationServiceInterface;
-import com.medplus.qc_lims_backend.specifications.MasterSpecifications;
 import com.medplus.qc_lims_backend.util.ExcelUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +24,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import com.medplus.qc_lims_backend.dao.AnalystQualificationDao;
+import com.medplus.qc_lims_backend.domain.criteria.AnalystQualificationSearchCriteria;
+import com.medplus.qc_lims_backend.dto.PagedResponse;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -41,21 +40,43 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
 
     private final AnalystQualificationRepository repository;
     private final TestParameterRepository parameterRepository;
+    private final AnalystQualificationDao analystQualificationDao;
 
     public AnalystQualificationServiceImpl(AnalystQualificationRepository repository,
-                                           TestParameterRepository parameterRepository) {
+                                           TestParameterRepository parameterRepository,
+                                           AnalystQualificationDao analystQualificationDao) {
         this.repository = repository;
         this.parameterRepository = parameterRepository;
+        this.analystQualificationDao = analystQualificationDao;
     }
 
     @Override
-    public Page<AnalystQualification> findAll(String search, boolean includeInactive, Pageable pageable) {
-        Specification<AnalystQualification> spec = MasterSpecifications.nameContains(search);
-        if (includeInactive) {
-            return repository.findAll(spec, pageable);
+    @Transactional(readOnly = true)
+    public PagedResponse<AnalystQualification> getPagedQualifications(AnalystQualificationSearchCriteria criteria) {
+        if (criteria == null) {
+            criteria = new AnalystQualificationSearchCriteria();
         }
-        return repository.findByStatus(MasterStatus.ACTIVE, spec, pageable);
+        long total = analystQualificationDao.count(criteria);
+        if (total == 0) {
+            return PagedResponse.of(List.of(), 0, criteria.getPage(), criteria.getSize());
+        }
+
+        int offset = criteria.getOffset();
+        List<Long> ids = analystQualificationDao.getPageIds(criteria, offset, criteria.getSize());
+        List<AnalystQualification> content = analystQualificationDao.getEntitiesByIds(ids);
+
+        return PagedResponse.of(content, total, criteria.getPage(), criteria.getSize());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnalystQualification> findList(AnalystQualificationSearchCriteria criteria, int maxResults) {
+        if (criteria == null) {
+            criteria = new AnalystQualificationSearchCriteria();
+        }
+        return analystQualificationDao.findList(criteria, maxResults);
+    }
+
 
     @Override
     @Transactional
@@ -65,14 +86,59 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
         List<AnalystQualificationBulkRow> rows = parseFile(file);
         ExcelUtils.validateRowCount(rows, MAX_ROWS);
 
-        Map<Long, AnalystQualification> existingById = repository.findAll().stream()
-                .collect(Collectors.toMap(AnalystQualification::getId, aq -> aq));
-        Map<Long, TestParameter> paramsById = parameterRepository.findAll().stream()
-                .collect(Collectors.toMap(TestParameter::getId, tp -> tp));
+        List<Long> ids = rows.stream().map(AnalystQualificationBulkRow::id).filter(Objects::nonNull).distinct().toList();
+        Map<Long, AnalystQualification> existingById = ids.isEmpty() ? Map.of() :
+                repository.findAllById(ids).stream().collect(Collectors.toMap(AnalystQualification::getId, aq -> aq));
+
+        List<Long> paramIds = rows.stream().map(AnalystQualificationBulkRow::parameterId).filter(Objects::nonNull).distinct().toList();
+        Map<Long, TestParameter> paramsById = paramIds.isEmpty() ? Map.of() :
+                parameterRepository.findAllById(paramIds).stream().collect(Collectors.toMap(TestParameter::getId, tp -> tp));
+
+        // Extract combination keys (e.g., "EMP01:15") to query ONLY matching active records from DB via DAO,
+        // and detect intra-file duplicate combination rows
+        Set<String> comboKeys = new HashSet<>();
+        Map<String, List<Integer>> rowsByCombo = new HashMap<>();
+
+        for (AnalystQualificationBulkRow r : rows) {
+            String act = r.action() != null ? r.action().toUpperCase() : "";
+            if (act.equals("A")) {
+                if (r.employeeId() != null && !r.employeeId().isBlank() && r.parameterId() != null) {
+                    String combo = r.employeeId().trim().toUpperCase() + ":" + r.parameterId();
+                    comboKeys.add(combo);
+                    rowsByCombo.computeIfAbsent(combo, k -> new ArrayList<>()).add(r.rowNumber());
+                }
+            } else if (act.equals("U") && r.id() != null && existingById.containsKey(r.id())) {
+                AnalystQualification ex = existingById.get(r.id());
+                if (ex.getStatus() == MasterStatus.ACTIVE) {
+                    String emp = (r.employeeId() != null && !r.employeeId().isBlank())
+                            ? r.employeeId().trim().toUpperCase()
+                            : (ex.getEmployeeId() != null ? ex.getEmployeeId().trim().toUpperCase() : null);
+                    Long pid = r.parameterId() != null
+                            ? r.parameterId()
+                            : (ex.getTestParameter() != null ? ex.getTestParameter().getId() : null);
+                    if (emp != null && pid != null) {
+                        String combo = emp + ":" + pid;
+                        comboKeys.add(combo);
+                        rowsByCombo.computeIfAbsent(combo, k -> new ArrayList<>()).add(r.rowNumber());
+                    }
+                }
+            }
+        }
+
+        Set<String> duplicateComboKeys = rowsByCombo.entrySet().stream()
+                .filter(e -> e.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        List<AnalystQualification> activeFromDb = analystQualificationDao.findActiveByEmployeeAndParamCombos(comboKeys);
+        Map<String, List<AnalystQualification>> activeByCombo = activeFromDb.stream()
+                .filter(aq -> aq.getEmployeeId() != null && aq.getTestParameter() != null)
+                .collect(Collectors.groupingBy(aq ->
+                        aq.getEmployeeId().trim().toUpperCase() + ":" + aq.getTestParameter().getId()));
 
         Map<Integer, List<String>> errors = new ConcurrentHashMap<>();
         rows.parallelStream().forEach(row -> {
-            List<String> rowErrors = validateRow(row, existingById, paramsById);
+            List<String> rowErrors = validateRow(row, existingById, paramsById, activeByCombo, duplicateComboKeys);
             if (!rowErrors.isEmpty()) {
                 errors.put(row.rowNumber(), rowErrors);
             }
@@ -136,7 +202,9 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
 
     private List<String> validateRow(AnalystQualificationBulkRow row,
                                      Map<Long, AnalystQualification> existing,
-                                     Map<Long, TestParameter> params) {
+                                     Map<Long, TestParameter> params,
+                                     Map<String, List<AnalystQualification>> activeByCombo,
+                                     Set<String> duplicateComboKeys) {
         List<String> errors = new ArrayList<>();
         ExcelUtils.validateActionAndId(row, errors);
         if (!errors.isEmpty()) return errors;
@@ -151,6 +219,8 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
                 }
                 if (row.parameterId() == null) {
                     errors.add("Parameter ID is required");
+                } else if (!params.containsKey(row.parameterId())) {
+                    errors.add(ErrorMessages.ERR_PARAM_NOT_FOUND.getMessage());
                 }
                 if (row.qualifiedOn() == null || row.qualifiedOn().isBlank()) {
                     errors.add("Qualified On date is required");
@@ -159,6 +229,19 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
                         LocalDate.parse(row.qualifiedOn(), DateTimeFormatter.ISO_LOCAL_DATE);
                     } catch (DateTimeParseException e) {
                         errors.add("Qualified On must be in YYYY-MM-DD format");
+                    }
+                }
+
+                // Check active combination duplicate for 'A'
+                if (row.employeeId() != null && !row.employeeId().isBlank() && row.parameterId() != null && params.containsKey(row.parameterId())) {
+                    String comboKey = row.employeeId().trim().toUpperCase() + ":" + row.parameterId();
+                    if (duplicateComboKeys.contains(comboKey)) {
+                        errors.add(ErrorMessages.ERR_QUALIFICATION_DUPLICATE_IN_FILE.getMessage());
+                    } else {
+                        List<AnalystQualification> matching = activeByCombo.get(comboKey);
+                        if (matching != null && !matching.isEmpty()) {
+                            errors.add(ErrorMessages.ERR_QUALIFICATION_DUPLICATE.getMessage());
+                        }
                     }
                 }
             } else {
@@ -171,15 +254,38 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
                     }
                 }
                 if (row.parameterId() != null && !params.containsKey(row.parameterId())) {
-                    errors.add("The specified parameter ID does not exist");
+                    errors.add(ErrorMessages.ERR_PARAM_NOT_FOUND.getMessage());
                 }
                 ExcelUtils.validateUpdateHasFields(row, errors,
                         "Employee ID", row.employeeId(), "Parameter ID",
                         String.valueOf(row.parameterId()), "Qualified On", row.qualifiedOn());
+
+                // Check active combination duplicate for 'U'
+                if (row.id() != null && existing.containsKey(row.id()) && existing.get(row.id()).getStatus() == MasterStatus.ACTIVE) {
+                    AnalystQualification ex = existing.get(row.id());
+                    String effEmp = (row.employeeId() != null && !row.employeeId().isBlank())
+                            ? row.employeeId().trim().toUpperCase()
+                            : (ex.getEmployeeId() != null ? ex.getEmployeeId().trim().toUpperCase() : null);
+                    Long effParam = row.parameterId() != null
+                            ? row.parameterId()
+                            : (ex.getTestParameter() != null ? ex.getTestParameter().getId() : null);
+
+                    if (effEmp != null && effParam != null && (row.parameterId() == null || params.containsKey(row.parameterId()))) {
+                        String comboKey = effEmp + ":" + effParam;
+                        if (duplicateComboKeys.contains(comboKey)) {
+                            errors.add(ErrorMessages.ERR_QUALIFICATION_DUPLICATE_IN_FILE.getMessage());
+                        } else {
+                            List<AnalystQualification> matching = activeByCombo.get(comboKey);
+                            if (matching != null && matching.stream().anyMatch(a -> !a.getId().equals(row.id()))) {
+                                errors.add(ErrorMessages.ERR_QUALIFICATION_DUPLICATE.getMessage());
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        ExcelUtils.validateExists(row, existing, errors, "Analyst Qualification");
+        ExcelUtils.validateExists(row, existing, AnalystQualification::getStatus, errors, "Analyst Qualification");
 
         return errors;
     }
@@ -212,6 +318,9 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
 
         List<AnalystQualificationBulkRow> updates = grouped.getOrDefault("U", List.of());
         if (!updates.isEmpty()) {
+            List<Long> updateIds = updates.stream().map(AnalystQualificationBulkRow::id).toList();
+            repository.logBeforeUpdate(updateIds, employeeId);
+
             List<AnalystQualification> toUpdate = updates.stream().map(r -> {
                 AnalystQualification aq = existingById.get(r.id());
                 if (r.employeeId() != null && !r.employeeId().isBlank()) {
@@ -233,6 +342,7 @@ public class AnalystQualificationServiceImpl implements AnalystQualificationServ
         List<AnalystQualificationBulkRow> deletes = grouped.getOrDefault("D", List.of());
         if (!deletes.isEmpty()) {
             List<Long> ids = deletes.stream().map(AnalystQualificationBulkRow::id).toList();
+            repository.logBeforeUpdate(ids, employeeId);
             repository.bulkDeactivate(ids, MasterStatus.INACTIVE, employeeId);
             deactivated = ids.size();
         }

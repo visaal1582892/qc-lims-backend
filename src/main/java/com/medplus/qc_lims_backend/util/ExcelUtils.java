@@ -1,6 +1,7 @@
 package com.medplus.qc_lims_backend.util;
 
 import com.medplus.qc_lims_backend.dto.BulkRow;
+import com.medplus.qc_lims_backend.enums.ErrorMessages;
 import com.medplus.qc_lims_backend.enums.MasterStatus;
 import com.medplus.qc_lims_backend.exception.BadRequestException;
 import lombok.experimental.UtilityClass;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Shared, reusable helpers for Apache POI Excel operations in bulk-upload workflows.
@@ -65,6 +67,27 @@ public final class ExcelUtils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Read a cell as a BigDecimal rounded to 2 decimal places. Returns null for missing, blank, or invalid cells.
+     */
+    public static java.math.BigDecimal getCellDecimal(Row row, int col) {
+        Cell cell = row.getCell(col, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if (cell == null) return null;
+        try {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return java.math.BigDecimal.valueOf(cell.getNumericCellValue())
+                        .setScale(2, java.math.RoundingMode.HALF_UP);
+            } else if (cell.getCellType() == CellType.STRING) {
+                String str = cell.getStringCellValue().trim();
+                if (str.isEmpty()) return null;
+                return new java.math.BigDecimal(str).setScale(2, java.math.RoundingMode.HALF_UP);
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------
@@ -185,39 +208,54 @@ public final class ExcelUtils {
 
         // Action must be A, U, or D
         if (!action.matches("[AUD]")) {
-            errors.add("Action must be A (Add), U (Update), or D (Deactivate)");
+            errors.add(ErrorMessages.ERR_INVALID_ACTION.getMessage());
             return;
         }
 
         // Add must not have an ID
         if (action.equals("A") && row.id() != null) {
-            errors.add("ID is not allowed for Add action");
+            errors.add(ErrorMessages.ERR_ID_NOT_ALLOWED.getMessage());
         }
 
         // Update/Deactivate must have an ID
         if ((action.equals("U") || action.equals("D")) && row.id() == null) {
-            errors.add("ID is required for Update/Deactivate action");
+            errors.add(ErrorMessages.ERR_MISSING_ID.getMessage());
         }
     }
 
     /**
-     * Check if the entity exists in the provided map (for U/D actions).
-     * Adds an error if not found — uses ErrorMessages.
+     * Check if the entity exists in the provided map and is ACTIVE (for U/D actions).
+     * Adds an error if not found or if the record is inactive.
+     */
+    public static <E> void validateExists(
+            BulkRow row,
+            Map<Long, E> existingById,
+            Function<E, MasterStatus> statusExtractor,
+            List<String> errors,
+            String entityLabel) {
+
+        String action = row.action().toUpperCase();
+        if ((action.equals("U") || action.equals("D")) && row.id() != null) {
+            E entity = existingById.get(row.id());
+            if (entity == null) {
+                String verb = action.equals("U") ? "update" : "deactivate";
+                errors.add(entityLabel + " with ID " + row.id()
+                        + " not found — cannot " + verb + " a non-existent record");
+            } else if (statusExtractor != null && statusExtractor.apply(entity) != MasterStatus.ACTIVE) {
+                errors.add(ErrorMessages.ERR_INACTIVE_RECORD.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Backwards-compatible validateExists overload without status check.
      */
     public static <E> void validateExists(
             BulkRow row,
             Map<Long, E> existingById,
             List<String> errors,
             String entityLabel) {
-
-        String action = row.action().toUpperCase();
-        if ((action.equals("U") || action.equals("D")) && row.id() != null) {
-            if (!existingById.containsKey(row.id())) {
-                String verb = action.equals("U") ? "update" : "deactivate";
-                errors.add(entityLabel + " with ID " + row.id()
-                        + " not found — cannot " + verb + " a non-existent record");
-            }
-        }
+        validateExists(row, existingById, null, errors, entityLabel);
     }
 
     /**

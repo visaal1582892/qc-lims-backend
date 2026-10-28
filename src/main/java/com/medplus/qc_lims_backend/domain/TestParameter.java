@@ -24,13 +24,6 @@ public class TestParameter extends AuditEntity {
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(name = "result_type", nullable = false, length = 20)
-    private String resultType; // TEXTUAL | METRICS
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "metric_unit_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private MetricUnit metricUnit;
-
     @Column(nullable = false, length = 1)
     @Builder.Default
     private MasterStatus status = MasterStatus.ACTIVE;

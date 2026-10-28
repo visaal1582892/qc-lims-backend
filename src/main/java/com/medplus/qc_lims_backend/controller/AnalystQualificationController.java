@@ -4,13 +4,13 @@ import com.medplus.qc_lims_backend.domain.AnalystQualification;
 import com.medplus.qc_lims_backend.dto.BulkUploadResponse;
 import com.medplus.qc_lims_backend.security.Rights;
 import com.medplus.qc_lims_backend.service.AnalystQualificationServiceInterface;
+import com.medplus.qc_lims_backend.domain.criteria.AnalystQualificationSearchCriteria;
+import com.medplus.qc_lims_backend.dto.PagedResponse;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,11 +28,21 @@ public class AnalystQualificationController {
     }
 
     @GetMapping
-    public Page<AnalystQualification> getAll(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "false") boolean includeInactive,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return analystQualificationService.findAll(search, includeInactive, pageable);
+    public PagedResponse<AnalystQualification> getAll(
+            @ModelAttribute AnalystQualificationSearchCriteria criteria,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String search) {
+        if (StringUtils.hasText(sort)) {
+            String[] parts = sort.split(",");
+            criteria.setSortField(parts[0].trim());
+            if (parts.length > 1) {
+                criteria.setSortDirection(parts[1].trim());
+            }
+        }
+        if (StringUtils.hasText(search) && !StringUtils.hasText(criteria.getSearchKey())) {
+            criteria.setSearchKey(search);
+        }
+        return analystQualificationService.getPagedQualifications(criteria);
     }
 
     @PostMapping("/upload")

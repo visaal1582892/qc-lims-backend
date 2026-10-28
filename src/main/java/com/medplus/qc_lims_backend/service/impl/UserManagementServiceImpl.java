@@ -128,6 +128,14 @@ public class UserManagementServiceImpl implements UserManagementServiceInterface
         roleRepository.findById(roleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleId));
 
+        String createdBy = com.medplus.qc_lims_backend.util.SecurityUtils.getCurrentEmployeeId();
+        jdbc.update("""
+                INSERT INTO role_rights_log (role_id, right_id, created_by)
+                SELECT role_id, right_id, :createdBy
+                FROM role_rights WHERE role_id = :rid
+                """,
+                new MapSqlParameterSource("rid", roleId).addValue("createdBy", createdBy));
+
         jdbc.update("DELETE FROM role_rights WHERE role_id = :rid",
                 new MapSqlParameterSource("rid", roleId));
         if (rightIds != null) {
